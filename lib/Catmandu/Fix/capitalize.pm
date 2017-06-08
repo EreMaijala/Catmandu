@@ -5,16 +5,18 @@ use Catmandu::Sane;
 our $VERSION = '1.0507';
 
 use Moo;
+use Catmandu::Util qw(is_string as_utf8);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
+extends 'Catmandu::Fix::Builder';
+
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+sub BUILD {
+    my ($self) = @_;
 
-sub emit_value {
-    my ($self, $var) = @_;
-    "${var} = ucfirst(lc(as_utf8(${var}))) if is_string(${var});";
+    $self->at($self->path)->if(\&is_string)->set(sub { ucfirst lc as_utf8($_[0]) });
 }
 
 1;
