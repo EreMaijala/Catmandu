@@ -5,19 +5,26 @@ use Catmandu::Sane;
 our $VERSION = '1.0507';
 
 use Moo;
+use Types::Standard qw(ArrayRef HashRef);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
+extends 'Catmandu::Fix::Builder';
+
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+sub BUILD {
+    my ($self) = @_;
 
-sub emit_value {
-    my ($self, $var) = @_;
-    "if (is_array_ref(${var})) {"
-        . "${var} = scalar \@{${var}};"
-        . "} elsif (is_hash_ref(${var})) {"
-        . "${var} = scalar keys \%{${var}};" . "}";
+    my $builder = $self->at($self->path);
+    $builder->if(ArrayRef)->set(sub {
+        my $val = $_[0];
+        scalar(@$val);
+    });
+    $builder->if(HashRef)->set(sub {
+        my $val = $_[0];
+        scalar(keys %$val);
+    });
 }
 
 1;
