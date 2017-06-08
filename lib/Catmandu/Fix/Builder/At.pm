@@ -27,16 +27,16 @@ sub emit {
         $var,
         $segments,
         sub {
-            my $var = $_[0];
+            my $container_var = $_[0];
             $fixer->emit_get_key(
-                $var, $key,
+                $container_var, $key,
                 sub {
                     my $var = $_[0];
                     my $perl = "";
                     if ($cb_var) {
                         $perl .= "${cb_var}->(${var});";
                     }
-                    $perl . $self->emit_steps($fixer, $label, $var);
+                    $perl . $self->emit_steps($fixer, $label, $var, $container_var, $key);
                 }
             );
         }

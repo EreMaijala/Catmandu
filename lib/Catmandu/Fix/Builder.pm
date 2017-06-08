@@ -6,8 +6,8 @@ our $VERSION = '1.0507';
 
 use Catmandu::Fix::Builder::At;
 use Catmandu::Fix::Builder::If;
-use Catmandu::Fix::Builder::Unless;
 use Catmandu::Fix::Builder::Set;
+use Catmandu::Fix::Builder::Delete;
 use Moo;
 
 with 'Catmandu::Fix::Base';
@@ -28,16 +28,16 @@ sub if {
     $step;
 }
 
-sub unless {
-    my ($self, $cb) = @_;
-    my $step = Catmandu::Fix::Builder::Unless->new({cb => $cb});
-    push @{$self->steps}, $step;
-    $step;
-}
-
 sub set {
     my ($self, $cb) = @_;
     my $step = Catmandu::Fix::Builder::Set->new({cb => $cb});
+    push @{$self->steps}, $step;
+    $self;
+}
+
+sub delete {
+    my ($self, $cb) = @_;
+    my $step = Catmandu::Fix::Builder::Delete->new;
     push @{$self->steps}, $step;
     $self;
 }

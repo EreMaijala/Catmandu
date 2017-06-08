@@ -11,13 +11,13 @@ extends 'Catmandu::Fix::Builder';
 has cb => (is => 'ro');
 
 sub emit {
-    my ($self, $fixer, $label, $var) = @_;
+    my ($self, $fixer, $label, $var, $container_var, $key) = @_;
     $var ||= $fixer->var;
 
     my $cb_var = $fixer->capture($self->cb);
 
     "if (${cb_var}->(${var})) {" .
-        $self->emit_steps($fixer, $label, $var) .
+        $self->emit_steps($fixer, $label, $var, $container_var, $key) .
     "}";
 }
 
