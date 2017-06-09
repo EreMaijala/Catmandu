@@ -5,16 +5,18 @@ use Catmandu::Sane;
 our $VERSION = '1.0507';
 
 use Moo;
+use Catmandu::Util qw(is_hash_ref);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
+extends 'Catmandu::Fix::Builder';
+
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+sub BUILD {
+    my ($self) = @_;
 
-sub emit_value {
-    my ($self, $var) = @_;
-    "if (is_hash_ref(${var})) {" . "${var} = [\%{${var}}];" . "}";
+    $self->get($self->path)->if(\&is_hash_ref)->set(sub { [%{$_[0]}] });
 }
 
 1;
