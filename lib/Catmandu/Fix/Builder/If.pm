@@ -8,16 +8,16 @@ use Moo;
 
 extends 'Catmandu::Fix::Builder';
 
-has cb => (is => 'ro');
+has condition => (is => 'ro');
 
 sub emit {
-    my ($self, $fixer, $label, $var, $container_var, $key) = @_;
+    my ($self, $fixer, $label, $var) = @_;
     $var ||= $fixer->var;
 
-    my $cb_var = $fixer->capture($self->cb);
+    my $if_var = $fixer->capture($self->condition);
 
-    "if (${cb_var}->(${var})) {" .
-        $self->emit_steps($fixer, $label, $var, $container_var, $key) .
+    "if (${if_var}->(${var})) {" .
+        $self->emit_steps($fixer, $label, $var) .
     "}";
 }
 

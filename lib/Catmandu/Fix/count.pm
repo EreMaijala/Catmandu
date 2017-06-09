@@ -16,7 +16,7 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->at($self->path);
+    my $builder = $self->get($self->path);
     $builder->if(\&is_array_ref)->set(sub {
         my $val = $_[0];
         scalar(@$val);

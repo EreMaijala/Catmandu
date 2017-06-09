@@ -16,7 +16,7 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    $self->at($self->path)->if(\&is_string)->set(sub { lc as_utf8($_[0]) });
+    $self->get($self->path)->if(\&is_string)->set(sub { lc as_utf8($_[0]) });
 }
 
 1;

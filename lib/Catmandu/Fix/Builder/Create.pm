@@ -1,4 +1,4 @@
-package Catmandu::Fix::Builder::Delete;
+package Catmandu::Fix::Builder::Create;
 
 use Catmandu::Sane;
 
@@ -15,16 +15,17 @@ sub emit {
     $var ||= $fixer->var;
 
     my $path = $fixer->split_path($self->path);
-    my $key = pop @$path;
 
-    $fixer->emit_walk_path(
-        $var,
+    $fixer->emit_create_path(
+        $fixer->var,
         $path,
         sub {
             my $var = $_[0];
-            $fixer->emit_delete_key($var, $key);
+            $self->emit_steps($fixer, $label, $var);
         }
     );
+
 }
 
 1;
+

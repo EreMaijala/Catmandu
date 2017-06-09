@@ -15,7 +15,7 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    $self->at($self->path)->delete;
+    $self->delete($self->path);
 }
 
 1;
