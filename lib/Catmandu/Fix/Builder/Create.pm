@@ -17,7 +17,7 @@ sub emit {
     my $path = $fixer->split_path($self->path);
 
     $fixer->emit_create_path(
-        $fixer->var,
+        $var,
         $path,
         sub {
             my $var = $_[0];

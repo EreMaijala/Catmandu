@@ -21,12 +21,12 @@ sub emit {
         $var,
         $path,
         sub {
-            my $container_var = $_[0];
+            my $var = $_[0];
             $fixer->emit_get_key(
-                $container_var, $key,
+                $var, $key,
                 sub {
                     my $var = $_[0];
-                    $self->emit_steps($fixer, $label, $var, $container_var, $key);
+                    $self->emit_steps($fixer, $label, $var);
                 }
             );
         }

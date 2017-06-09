@@ -16,7 +16,7 @@ with 'Catmandu::Fix::Base';
 has steps => (is => 'lazy', default => sub { [] });
 
 sub get {
-    my ($self, $path, $cb) = @_;
+    my ($self, $path) = @_;
     my $step = Catmandu::Fix::Builder::Get->new({path => $path});
     push @{$self->steps}, $step;
     $step;
@@ -30,10 +30,10 @@ sub set {
 }
 
 sub create {
-    my ($self, $path) = @_;i
+    my ($self, $path) = @_;
     my $step = Catmandu::Fix::Builder::Create->new({path => $path});
     push @{$self->steps}, $step;
-    $self;
+    $step;
 }
 
 sub delete {
