@@ -708,6 +708,7 @@ sub emit_clone {
 # Split a path on '.' or '/', but not on '\.' or '\/'.
 sub split_path {
     my ($self, $path) = @_;
+    return $path if is_array_ref($path);
     [map {s/\\(?=[\.\/])//g; $_} split /(?<!\\)[\.\/]/, trim($path)];
 }
 

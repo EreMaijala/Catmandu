@@ -7,6 +7,7 @@ our $VERSION = '1.0507';
 use Catmandu::Fix::Builder::Get;
 use Catmandu::Fix::Builder::Set;
 use Catmandu::Fix::Builder::Create;
+use Catmandu::Fix::Builder::Update;
 use Catmandu::Fix::Builder::Delete;
 use Catmandu::Fix::Builder::If;
 use Moo;
@@ -23,10 +24,10 @@ sub get {
 }
 
 sub set {
-    my ($self, $value) = @_;
-    my $step = Catmandu::Fix::Builder::Set->new({value => $value});
+    my ($self, $path, $value) = @_;
+    my $step = Catmandu::Fix::Builder::Set->new({path => $path, value => $value});
     push @{$self->steps}, $step;
-    $self;
+    $step;
 }
 
 sub create {
@@ -34,6 +35,13 @@ sub create {
     my $step = Catmandu::Fix::Builder::Create->new({path => $path});
     push @{$self->steps}, $step;
     $step;
+}
+
+sub update {
+    my ($self, $value) = @_;
+    my $step = Catmandu::Fix::Builder::Create->new({value => $value});
+    push @{$self->steps}, $step;
+    $self;
 }
 
 sub delete {

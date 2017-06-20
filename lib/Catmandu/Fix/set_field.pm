@@ -4,31 +4,19 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0507';
 
-use Clone qw(clone);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-with 'Catmandu::Fix::Base';
+extends 'Catmandu::Fix::Builder';
 
 has path => (fix_arg => 1);
-has value => (fix_arg => 1, default => sub {undef;});
+has value => (fix_arg => 1, default => sub {});
 
-sub emit {
-    my ($self, $fixer) = @_;
-    my $path = $fixer->split_path($self->path);
-    my $key  = pop @$path;
-    my $value
-        = defined $self->value ? $fixer->emit_value($self->value) : 'undef';
+sub BUILD {
+    my ($self) = @_;
 
-    $fixer->emit_walk_path(
-        $fixer->var,
-        $path,
-        sub {
-            my $var = shift;
-            $fixer->emit_set_key($var, $key, $value);
-        }
-    );
+    $self->set($self->path, $self->value);
 }
 
 1;

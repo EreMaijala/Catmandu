@@ -8,26 +8,14 @@ use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-with 'Catmandu::Fix::Base';
+extends 'Catmandu::Fix::Builder';
 
 has path => (fix_arg => 1);
 has values => (fix_arg => 'collect', default => sub {[]});
 
-sub emit {
-    my ($self, $fixer) = @_;
-    my $path   = $fixer->split_path($self->path);
-    my $key    = pop @$path;
-    my $values = $self->values;
-
-    $fixer->emit_walk_path(
-        $fixer->var,
-        $path,
-        sub {
-            my $var = shift;
-            $fixer->emit_set_key($var, $key,
-                "{" . join(',', map {$fixer->emit_value($_)} @$values) . "}");
-        }
-    );
+sub BUILD {
+    my ($self) = @_;
+    $self->set($self->path, {@{$self->values}});
 }
 
 1;

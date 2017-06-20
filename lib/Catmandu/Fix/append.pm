@@ -19,7 +19,7 @@ sub BUILD {
 
     my $val = $self->value;
 
-    $self->get($self->path)->if(\&is_value)->set(sub { join('', $_[0], $val) });
+    $self->get($self->path)->if(\&is_value)->update(sub { join('', $_[0], $val) });
 }
 
 1;

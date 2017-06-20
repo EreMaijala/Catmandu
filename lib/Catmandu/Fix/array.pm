@@ -16,7 +16,7 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    $self->get($self->path)->if(\&is_hash_ref)->set(sub { [%{$_[0]}] });
+    $self->get($self->path)->if(\&is_hash_ref)->update(sub { [%{$_[0]}] });
 }
 
 1;

@@ -17,11 +17,11 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->get($self->path);
-    $builder->if(\&is_array_ref)->set(sub {
+    $builder->if(\&is_array_ref)->update(sub {
         my $val = $_[0];
         scalar(@$val);
     });
-    $builder->if(\&is_hash_ref)->set(sub {
+    $builder->if(\&is_hash_ref)->update(sub {
         my $val = $_[0];
         scalar(keys %$val);
     });

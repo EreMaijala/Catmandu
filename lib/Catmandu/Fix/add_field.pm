@@ -15,7 +15,7 @@ has value => (fix_arg => 1, default => sub {});
 sub BUILD {
     my ($self) = @_;
 
-    $self->create($self->path)->set($self->value);
+    $self->create($self->path)->update($self->value);
 }
 
 1;

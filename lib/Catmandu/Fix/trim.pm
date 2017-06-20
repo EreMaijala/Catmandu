@@ -38,7 +38,7 @@ sub BUILD {
         };
     }
 
-    $self->get($self->path)->if(\&is_string)->set($cb);
+    $self->get($self->path)->if(\&is_string)->update($cb);
 }
 
 1;
