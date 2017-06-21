@@ -39,7 +39,7 @@ sub create {
 
 sub update {
     my ($self, $value) = @_;
-    my $step = Catmandu::Fix::Builder::Create->new({value => $value});
+    my $step = Catmandu::Fix::Builder::Update->new({value => $value});
     push @{$self->steps}, $step;
     $self;
 }
