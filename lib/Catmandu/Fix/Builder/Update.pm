@@ -21,7 +21,7 @@ sub emit {
         my $val_var = $fixer->capture($val);
         "${var} = ${val_var}->(${var});";
     } elsif (is_value($val)) {
-        $val = $fixer->emit_value($self->value);
+        $val = $fixer->emit_value($val);
         "${var} = ${val};";
     } elsif (is_array_ref($val) || is_hash_ref($val)) {
         my $val_var = $fixer->capture($val);
