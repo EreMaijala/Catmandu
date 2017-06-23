@@ -16,19 +16,25 @@ sub emit {
     $var ||= $fixer->var;
 
     my $val = $self->value;
+    my $tmp_var = $fixer->generate_var;
 
+    my $perl_val;
     if (is_code_ref($val)) {
         my $val_var = $fixer->capture($val);
-        "${var} = ${val_var}->(${var});";
+        $perl_val = "${val_var}->(${var})";
     } elsif (is_value($val)) {
-        $val = $fixer->emit_value($val);
-        "${var} = ${val};";
+        $perl_val = $fixer->emit_value($val);
     } elsif (is_array_ref($val) || is_hash_ref($val)) {
-        my $val_var = $fixer->capture($val);
-        "${var} = ${val_var};";
+        $perl_val = $fixer->capture($val);
     } else {
-        "${var} = undef;";
+        $perl_val = "undef";
     }
+
+    $fixer->emit_declare_vars($tmp_var, $perl_val) .
+    "if (" . $self->emit_is_cancel_delete($tmp_var) . ") {" .
+    "} elsif (!" . $self->emit_is_cancel($tmp_var) . ") {" .
+        "${var} = ${tmp_var};" .
+    "}";
 }
 
 1;

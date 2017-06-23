@@ -24,7 +24,6 @@ sub emit {
             $self->emit_steps($fixer, $label, $var);
         }
     );
-
 }
 
 1;
