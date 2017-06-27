@@ -7,7 +7,7 @@ our $VERSION = '1.0507';
 
 use Moo;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Builder::Base';
 
 has path => (is => 'ro', required => 1);
 has value => (is => 'ro');
