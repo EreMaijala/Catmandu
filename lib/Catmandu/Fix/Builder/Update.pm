@@ -33,16 +33,14 @@ sub emit {
         $perl_val = "undef";
     }
 
-    my $perl = $fixer->emit_declare_vars($tmp_var, $perl_val);
+    my $perl = $fixer->emit_declare_vars($tmp_var, $perl_val)
+        . "if (" . $self->emit_is_cancel_and_delete($tmp_var) . ") {";
     if ($key // $index_var) {
-        $perl .= "if ("
-        . $self->emit_is_cancel_and_delete($tmp_var) . ") {"
-        . $fixer->emit_delete($up_var, $key, $index_var)
-        . "} els";
+        $perl .= $fixer->emit_delete($up_var, $key, $index_var);
     } else {
-       # TODO
+        $perl .= 'Catmandu::NotImplemented->throw;';
     }
-    $perl . "if (!"
+    $perl . "} elsif (!"
         . $self->emit_is_cancel($tmp_var) . ") {"
         . "${var} = ${tmp_var};" . "}";
 }
