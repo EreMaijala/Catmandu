@@ -40,7 +40,7 @@ is_deeply $fixer->fix({foo => 'bar'}), {foo => 'bar'},
 $fixes = <<EOF;
 do list()
   unless exists(foo)
-  	add_field(foo,bar)
+      add_field(foo,bar)
   end
 end
 EOF
@@ -52,7 +52,7 @@ is_deeply $fixer->fix({}), {foo => 'bar'}, 'testing unless';
 $fixes = <<EOF;
 do list()
   if exists(foo)
-  	add_field(foo2,bar)
+      add_field(foo2,bar)
   end
 end
 EOF
@@ -144,4 +144,4 @@ is_deeply $fixer->fix({}),
     {foo => ["1:", "2:", "3:", "4:"], test2 => [1, 2, 3, 4]},
     'specific testing, loop variable';
 
-done_testing 13;
+done_testing;

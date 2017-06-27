@@ -33,10 +33,16 @@ sub emit {
         $perl_val = "undef";
     }
 
-    $fixer->emit_declare_vars($tmp_var, $perl_val) . "if ("
+    my $perl = $fixer->emit_declare_vars($tmp_var, $perl_val);
+    if ($key // $index_var) {
+        $perl .= "if ("
         . $self->emit_is_cancel_and_delete($tmp_var) . ") {"
         . $fixer->emit_delete($up_var, $key, $index_var)
-        . "} elsif (!"
+        . "} els";
+    } else {
+       # TODO
+    }
+    $perl . "if (!"
         . $self->emit_is_cancel($tmp_var) . ") {"
         . "${var} = ${tmp_var};" . "}";
 }
