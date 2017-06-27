@@ -9,7 +9,7 @@ use Catmandu::Util qw(is_value);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path  => (fix_arg => 1);
 has value => (fix_arg => 1);
@@ -17,9 +17,13 @@ has value => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    my $val = $self->value;
-
-    $self->get($self->path)->if(\&is_value)->update(sub { join('', $_[0], $val) });
+    my $str = $self->value;
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        return $builder->cancel unless is_value($val);
+        join('', $val, $str);
+    });
 }
 
 1;

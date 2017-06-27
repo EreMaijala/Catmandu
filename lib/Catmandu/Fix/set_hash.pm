@@ -8,14 +8,15 @@ use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 has values => (fix_arg => 'collect', default => sub {[]});
 
 sub BUILD {
     my ($self) = @_;
-    $self->set($self->path, {@{$self->values}});
+
+    $self->builder->set($self->path, {@{$self->values}});
 }
 
 1;

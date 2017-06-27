@@ -9,14 +9,19 @@ use Catmandu::Util qw(is_string as_utf8);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 
 sub BUILD {
     my ($self) = @_;
 
-    $self->get($self->path)->if(\&is_string)->update(sub { uc as_utf8($_[0]) });
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        return $builder->cancel unless is_string($val);
+        ucfirst uc as_utf8($val);
+    });
 }
 
 1;

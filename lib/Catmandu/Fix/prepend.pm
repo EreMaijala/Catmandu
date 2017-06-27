@@ -5,18 +5,25 @@ use Catmandu::Sane;
 our $VERSION = '1.0602';
 
 use Moo;
+use Catmandu::Util qw(is_value);
 use namespace::clean;
 use Catmandu::Fix::Has;
+
+with 'Catmandu::Fix::Base';
 
 has path  => (fix_arg => 1);
 has value => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+sub BUILD {
+    my ($self) = @_;
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $value = $fixer->emit_string($self->value);
-    "${var} = join('', ${value}, ${var}) if is_value(${var});";
+    my $str = $self->value;
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        return $builder->cancel unless is_value($val);
+        join('', $str, $val);
+    });
 }
 
 1;

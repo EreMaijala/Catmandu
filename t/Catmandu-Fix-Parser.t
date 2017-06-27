@@ -6,10 +6,6 @@ use Test::More;
 use Test::Deep;
 use Test::Exception;
 use Catmandu::Fix;
-use Catmandu::Fix::upcase;
-use Catmandu::Fix::downcase;
-use Catmandu::Fix::reject;
-use Catmandu::Fix::Condition::exists;
 
 my $pkg;
 
@@ -31,134 +27,164 @@ dies_ok {$parser->parse("unless exists(foo)")} 'die on unless without end';
 dies_ok {$parser->parse("unless end")} 'die on unless without condition';
 dies_ok {$parser->parse("foo()")} 'die on unknown fix';
 
-my $foo_exists   = Catmandu::Fix::Condition::exists->new("foo");
-my $bar_exists   = Catmandu::Fix::Condition::exists->new("bar");
-my $baz_exists   = Catmandu::Fix::Condition::exists->new("baz");
-my $upcase_foo   = Catmandu::Fix::upcase->new("foo");
-my $downcase_foo = Catmandu::Fix::downcase->new("foo");
-my $upcase_bar   = Catmandu::Fix::upcase->new("bar");
-my $downcase_bar = Catmandu::Fix::downcase->new("bar");
-my $reject       = Catmandu::Fix::reject->new;
+my $fixes = $parser->parse("");
 
-cmp_deeply $parser->parse(""), [];
+cmp_deeply $fixes, [];
 
-cmp_deeply $parser->parse(
+sub is_upcase_foo {
+    my $fixes = $_[0];
+    @$fixes == 1 && $fixes->[0]->isa('Catmandu::Fix::upcase') && $fixes->[0]->path eq 'foo';
+}
+
+sub is_upcase_downcase_foo {
+    my $fixes = $_[0];
+    @$fixes == 2 && $fixes->[0]->isa('Catmandu::Fix::upcase') && $fixes->[0]->path eq 'foo'
+        && $fixes->[1]->isa('Catmandu::Fix::downcase') && $fixes->[1]->path eq 'foo' ;
+}
+
+ok is_upcase_foo($parser->parse(
     "# a comment
     # another comment
     #
-    downcase(foo) # yet another comment"
-    ),
-    [$downcase_foo,],
-    "comments";
+    upcase(foo) # yet another comment"
+)), 'ignore comments';
 
-cmp_deeply $parser->parse("upcase(foo)"), [$upcase_foo,];
+ok is_upcase_foo($parser->parse("upcase(foo)")), 'parse unquoted string argument';
+ok is_upcase_foo($parser->parse("upcase('foo')")), 'parse single quoted string argument';
+ok is_upcase_foo($parser->parse(q|upcase("foo")|)), 'parse double quoted string argument';
 
-cmp_deeply $parser->parse(q|upcase('foo')|), [$upcase_foo,];
+ok is_upcase_downcase_foo($parser->parse("upcase(foo) downcase(foo)"));
+ok is_upcase_downcase_foo($parser->parse("upcase(foo); downcase(foo)"));
+ok is_upcase_downcase_foo($parser->parse("upcase(foo)\n downcase(foo)"));
 
-cmp_deeply $parser->parse(q|upcase("foo")|), [$upcase_foo,];
+# if
+$fixes = $parser->parse("if exists(foo) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 0;
+ok @{$fixes->[0]->fail_fixes} == 0;
 
-cmp_deeply $parser->parse("upcase(foo) downcase(foo)"),
-    [$upcase_foo, $downcase_foo,];
+$fixes = $parser->parse("if exists(foo) downcase(foo) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::downcase');
+ok @{$fixes->[0]->fail_fixes} == 0;
 
-cmp_deeply $parser->parse("upcase(foo) downcase(foo)"),
-    $parser->parse("upcase(foo); downcase(foo)");
+# if ... else
+$fixes = $parser->parse("if exists(foo) downcase(foo) else upcase(foo) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::downcase');
+ok @{$fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::upcase');
 
-cmp_deeply $parser->parse("upcase(foo) downcase(foo)"),
-    $parser->parse("upcase(foo); downcase(foo);");
+# unless
+$fixes = $parser->parse("unless exists(foo) downcase(foo) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 0;
+ok @{$fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::downcase');
 
-cmp_deeply $parser->parse("if exists(foo) end"), [$foo_exists,];
-
-$foo_exists->pass_fixes([$downcase_foo]);
-$foo_exists->fail_fixes([]);
-cmp_deeply $parser->parse("if exists(foo) downcase(foo) end"), [$foo_exists,];
-
-$foo_exists->pass_fixes([$downcase_foo]);
-$foo_exists->fail_fixes([$upcase_foo]);
-cmp_deeply $parser->parse(
-    "if exists(foo) downcase(foo) else upcase(foo) end"), [$foo_exists,];
-
-$foo_exists->pass_fixes([]);
-$foo_exists->fail_fixes([$downcase_foo]);
-cmp_deeply $parser->parse("unless exists(foo) downcase(foo) end"),
-    [$foo_exists,];
-
-$foo_exists->pass_fixes([$bar_exists, $upcase_foo]);
-$foo_exists->fail_fixes([]);
-$bar_exists->pass_fixes([$downcase_foo]);
-$bar_exists->fail_fixes([]);
-cmp_deeply $parser->parse(
-    "if exists(foo) if exists(bar) downcase(foo) end upcase(foo) end"),
-    [$foo_exists,];
-
-# with optional deprecated separators
-cmp_deeply $parser->parse(
-    "if exists(foo); if exists(bar); downcase(foo); end; upcase(foo); end;"),
-    [$foo_exists,];
+# nested if
+for (("if exists(foo) if exists(bar) downcase(foo) end upcase(foo) end",
+       "if exists(foo); if exists(bar); downcase(foo); end; upcase(foo); end;",
+    )) {
+    $fixes = $parser->parse($_);
+    ok @$fixes == 1;
+    ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+    ok @{$fixes->[0]->pass_fixes} == 2;
+    ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+    ok $fixes->[0]->pass_fixes->[1]->isa('Catmandu::Fix::upcase');
+    ok @{$fixes->[0]->fail_fixes} == 0;
+}
 
 # if ... elsif
-$bar_exists->pass_fixes([$upcase_foo]);
-$bar_exists->fail_fixes([]);
-$foo_exists->pass_fixes([$downcase_foo]);
-$foo_exists->fail_fixes([$bar_exists]);
-cmp_deeply $parser->parse(
-    "if exists(foo) downcase(foo) elsif exists(bar) upcase(foo) end"),
-    [$foo_exists,];
+$fixes = $parser->parse("if exists(foo) downcase(foo) elsif exists(bar) upcase(foo) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::downcase');
+ok @{$fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->fail_fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::upcase');
+ok @{$fixes->[0]->fail_fixes->[0]->fail_fixes} == 0;
 
 # if ... elsif ... else
-$bar_exists->pass_fixes([$upcase_foo]);
-$bar_exists->fail_fixes([$upcase_bar]);
-$foo_exists->pass_fixes([$downcase_foo]);
-$foo_exists->fail_fixes([$bar_exists]);
-cmp_deeply $parser->parse(
-    "if exists(foo) downcase(foo) elsif exists(bar) upcase(foo) else upcase(bar) end"
-), [$foo_exists,];
+$fixes = $parser->parse("if exists(foo) downcase(foo) elsif exists(bar) upcase(foo) else capitalize(bar) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::downcase');
+ok @{$fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->fail_fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::upcase');
+ok @{$fixes->[0]->fail_fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::capitalize');
 
 # if ... elsif ... elsif ... else
-$baz_exists->pass_fixes([$upcase_bar]);
-$baz_exists->fail_fixes([$downcase_bar]);
-$bar_exists->pass_fixes([$upcase_foo]);
-$bar_exists->fail_fixes([$baz_exists]);
-$foo_exists->pass_fixes([$downcase_foo]);
-$foo_exists->fail_fixes([$bar_exists]);
-cmp_deeply $parser->parse(
-    "if exists(foo) downcase(foo) elsif exists(bar) upcase(foo) elsif exists(baz) upcase(bar) else downcase(bar) end"
-), [$foo_exists,];
+$fixes = $parser->parse("if exists(foo) downcase(foo) elsif exists(bar) upcase(foo) elsif exists(baz) trim(bar) else capitalize(bar) end");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::downcase');
+ok @{$fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->fail_fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::upcase');
+ok @{$fixes->[0]->fail_fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::trim');
+ok @{$fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::capitalize');
 
 # and, or
-$foo_exists->pass_fixes([$downcase_foo]);
-$foo_exists->fail_fixes([]);
-cmp_deeply $parser->parse("exists(foo) and downcase(foo)"), [$foo_exists,];
-cmp_deeply $parser->parse("exists(foo) && downcase(foo)"),  [$foo_exists,];
-cmp_deeply $parser->parse("exists(foo) && downcase(foo);"), [$foo_exists,];
+for (("exists(foo) and downcase(foo)",
+       "exists(foo) && downcase(foo)",
+       "exists(foo) && downcase(foo);",
+    )) {
+    $fixes = $parser->parse($_);
+    ok @$fixes == 1;
+    ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+    ok @{$fixes->[0]->pass_fixes} == 1;
+    ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::downcase');
+    ok @{$fixes->[0]->fail_fixes} == 0;
+}
 
-$foo_exists->pass_fixes([]);
-$foo_exists->fail_fixes([$downcase_bar]);
-cmp_deeply $parser->parse("exists(foo) or downcase(bar)"), [$foo_exists,];
-cmp_deeply $parser->parse("exists(foo) || downcase(bar)"), [$foo_exists,];
+for (("exists(foo) or downcase(foo)",
+       "exists(foo) || downcase(foo)",
+       "exists(foo) || downcase(foo);",
+    )) {
+    $fixes = $parser->parse($_);
+    ok @$fixes == 1;
+    ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+    ok @{$fixes->[0]->pass_fixes} == 0;
+    ok @{$fixes->[0]->fail_fixes} == 1;
+    ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::downcase');
+}
 
-$foo_exists->pass_fixes([$upcase_foo]);
-$foo_exists->fail_fixes([]);
-$bar_exists->pass_fixes([$upcase_bar]);
-$bar_exists->fail_fixes([]);
-cmp_deeply $parser->parse(
-    "exists(foo) && upcase(foo) exists(bar) && upcase(bar)"),
-    [$foo_exists, $bar_exists,];
-cmp_deeply $parser->parse(
-    "exists(foo) && upcase(foo); exists(bar) && upcase(bar)"),
-    [$foo_exists, $bar_exists,];
-
-dies_ok {$parser->parse("exists(foo) || if exists(foo) downcase(foo) end")}
-'die on bool without fix';
+dies_ok {$parser->parse("exists(foo) || if exists(foo) downcase(foo) end")} 'die on bool without fix';
 dies_ok {$parser->parse("|| downcase(foo)")} 'die on bool without condition';
 
 # select, reject
-$foo_exists->pass_fixes([]);
-$foo_exists->fail_fixes([$reject]);
-cmp_deeply $parser->parse("select exists(foo)"), [$foo_exists,];
+$fixes = $parser->parse("select exists(foo)");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 0;
+ok @{$fixes->[0]->fail_fixes} == 1;
+ok $fixes->[0]->fail_fixes->[0]->isa('Catmandu::Fix::reject');
 
-$foo_exists->pass_fixes([$reject]);
-$foo_exists->fail_fixes([]);
-cmp_deeply $parser->parse("reject exists(foo)"), [$foo_exists,];
+$fixes = $parser->parse("reject exists(foo)");
+ok @$fixes == 1;
+ok $fixes->[0]->isa('Catmandu::Fix::Condition::exists');
+ok @{$fixes->[0]->pass_fixes} == 1;
+ok $fixes->[0]->pass_fixes->[0]->isa('Catmandu::Fix::reject');
+ok @{$fixes->[0]->fail_fixes} == 0;
 
 throws_ok {
     $parser->parse('unknown_fix()');
@@ -176,14 +202,12 @@ throws_ok {
 'Catmandu::FixParseError', 'syntax errors throw FixParseError';
 
 # bare strings
-
 {
     my $fixes = $parser->parse(q|add_field(022, 022)|);
     is $fixes->[0]->path, '022';
 }
 
 # string and regex escapes
-
 {
     my $fixes;
     lives_ok {

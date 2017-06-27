@@ -5,13 +5,17 @@ use Catmandu::Sane;
 our $VERSION = '1.0602';
 
 use Catmandu::Fix;
-use Scalar::Util qw(weaken);
+use Catmandu::Fix::Builder;
 use Moo::Role;
 use namespace::clean;
 
 with 'Catmandu::Fix::Inlineable', 'Catmandu::Logger';
 
-requires 'emit';
+has builder => (is => 'lazy', handles => [qw(emit)]);
+
+sub _build_builder {
+    Catmandu::Fix::Builder->new;
+}
 
 sub fixer {
     my ($self) = @_;

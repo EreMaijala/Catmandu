@@ -16,10 +16,6 @@ BEGIN {
 require_ok $pkg;
 
 {
-
-    package T::FixBaseWithoutEmit;
-    use Moo;
-
     package T::FixBase;
     use Moo;
     with $pkg;
@@ -32,9 +28,6 @@ require_ok $pkg;
     use Moo;
     T::FixBase->import(as => 'do_fix_base');
 }
-
-throws_ok {Role::Tiny->apply_role_to_package('T::FixBaseWithoutEmit', $pkg)}
-qr/missing emit/;
 
 my $fb = T::FixBase->new;
 can_ok $fb, 'emit';

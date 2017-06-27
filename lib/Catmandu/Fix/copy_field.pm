@@ -34,7 +34,7 @@ sub emit {
                 $var, $old_key,
                 sub {
                     my $var = shift;
-                    "push(\@{${vals}}, ${var});";
+                    "unshift(\@{${vals}}, ${var});";
                 }
             );
         }

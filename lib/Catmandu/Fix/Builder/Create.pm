@@ -15,13 +15,20 @@ sub emit {
     $var ||= $fixer->var;
 
     my $path = $fixer->split_path($self->path);
+    my $key  = pop @$path;
 
     $fixer->emit_create_path(
         $var,
         $path,
         sub {
-            my $var = $_[0];
-            $self->emit_steps($fixer, $label, $var);
+            my ($up_var) = @_;
+            $fixer->emit_create_path(
+                $up_var, [$key],
+                sub {
+                    my ($var, $index_var) = @_;
+                    $self->emit_steps($fixer, $label, $var, $up_var, $key, $index_var);
+                }
+            );
         }
     );
 }

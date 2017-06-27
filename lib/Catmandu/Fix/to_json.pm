@@ -5,23 +5,28 @@ use Catmandu::Sane;
 our $VERSION = '1.0602';
 
 use Cpanel::JSON::XS ();
+use Catmandu::Util qw(is_maybe_value is_array_ref is_hash_ref);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
+sub BUILD {
+    my ($self) = @_;
 
-    # memoize in case called multiple times
-    my $json_var = $fixer->capture(
-        Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1));
-
-    "if (is_maybe_value(${var}) || is_array_ref(${var}) || is_hash_ref(${var})) {"
-        . "${var} = ${json_var}->encode(${var});" . "}";
+    my $json = Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1);
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        if (is_maybe_value($val) || is_array_ref($val) || is_hash_ref($val)) {
+            $json->encode($val);
+        } else {
+            $builder->cancel;
+        }
+    });
 }
 
 1;

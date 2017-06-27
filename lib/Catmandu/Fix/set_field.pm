@@ -8,7 +8,7 @@ use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 has value => (fix_arg => 1, default => sub {});
@@ -16,7 +16,7 @@ has value => (fix_arg => 1, default => sub {});
 sub BUILD {
     my ($self) = @_;
 
-    $self->set($self->path, $self->value);
+    $self->builder->set($self->path, $self->value);
 }
 
 1;

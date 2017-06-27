@@ -14,8 +14,6 @@ use Catmandu::Fix::Builder::If;
 use Moo;
 use namespace::clean;
 
-with 'Catmandu::Fix::Base';
-
 has steps => (is => 'lazy', default => sub { [] });
 
 sub get {
@@ -53,24 +51,31 @@ sub if {
     $step;
 }
 
-my $cancel = [];
-my $cancel_delete = [];
+sub update {
+    my ($self, $value) = @_;
+    my $step = Catmandu::Fix::Builder::Update->new({value => $value});
+    push @{$self->steps}, $step;
+    $self;
+}
 
 sub cancel {
-    my ($self, %opts) = @_;
-    $opts{delete} ? $cancel_delete : $cancel;
+    state $cancel = {};
+}
+
+sub cancel_and_delete {
+    state $cancel_and_delete = {};
 }
 
 sub emit_is_cancel {
     my ($self, $var) = @_;
-    my $addr = refaddr($cancel);
-    "is_array_ref(${var}) && Scalar::Util::refaddr(${var}) == $addr";
+    my $addr = refaddr($self->cancel);
+    "(is_hash_ref(${var}) && Scalar::Util::refaddr(${var}) == $addr)";
 }
 
-sub emit_is_cancel_delete {
+sub emit_is_cancel_and_delete {
     my ($self, $var) = @_;
-    my $addr = refaddr($cancel_delete);
-    "is_array_ref(${var}) && Scalar::Util::refaddr(${var}) == $addr";
+    my $addr = refaddr($self->cancel_and_delete);
+    "(is_hash_ref(${var}) && Scalar::Util::refaddr(${var}) == $addr)";
 }
 
 sub emit_steps {

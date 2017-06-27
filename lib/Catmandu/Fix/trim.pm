@@ -10,7 +10,7 @@ use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 has mode => (fix_arg => 1, default => sub {'whitespace'});
@@ -18,13 +18,19 @@ has mode => (fix_arg => 1, default => sub {'whitespace'});
 sub BUILD {
     my ($self) = @_;
 
+    my $builder = $self->builder;
     my $cb;
     if ($self->mode eq 'whitespace') {
-        $cb = \&trim;
+        $cb = sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_string($val);
+            trim($val);
+        };
     }
     elsif ($self->mode eq 'nonword') {
         $cb = sub {
             my $val = $_[0];
+            return $builder->cancel unless is_string($val);
             $val =~ s/^\W+//;
             $val =~ s/\W+$//;
             $val;
@@ -32,13 +38,15 @@ sub BUILD {
     }
     elsif ($self->mode eq 'diacritics') {
         $cb = sub {
-            my $val = Unicode::Normalize::NFKD($_[0]);
+            my $val = $_[0];
+            return $builder->cancel unless is_string($val);
+            $val = Unicode::Normalize::NFKD($val);
             $val =~ s/\p{NonspacingMark}//g;
             $val;
         };
     }
 
-    $self->get($self->path)->if(\&is_string)->update($cb);
+    $builder->get($self->path)->update($cb);
 }
 
 1;

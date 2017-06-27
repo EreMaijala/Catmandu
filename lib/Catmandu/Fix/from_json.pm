@@ -5,21 +5,25 @@ use Catmandu::Sane;
 our $VERSION = '1.0602';
 
 use Cpanel::JSON::XS ();
+use Catmandu::Util qw(is_string);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $json_var = $fixer->capture(
-        Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1));
+sub BUILD {
+    my ($self) = @_;
 
-    "if (is_string(${var})) {"
-        . "${var} = ${json_var}->decode(${var});" . "}";
+    my $json = Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1);
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        return $self->cancel unless is_string($val);
+        $json->decode($val);
+    });
 }
 
 1;

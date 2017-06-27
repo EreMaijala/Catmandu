@@ -432,9 +432,9 @@ sub emit_create_path {
 }
 
 sub _emit_create_path {
-    my ($self, $var, $keys, $cb) = @_;
+    my ($self, $var, $keys, $cb, $index_var) = @_;
 
-    @$keys || return $cb->($var);
+    @$keys || return $cb->($var, $index_var);
 
     my $key     = shift @$keys;
     my $str_key = $self->emit_string($key);
@@ -457,8 +457,9 @@ sub _emit_create_path {
         my $v2 = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
         $perl .= "my ${v1} = ${var};";
-        $perl .= "for (my ${v2} = 0; ${v2} < \@{${v1}}; ${v2}++) {";
-        $perl .= $self->_emit_create_path("${v1}->[${v2}]", $keys, $cb);
+        # loop backwards so that deletions are safe
+        $perl .= "for (my ${v2} = \@{${v1}} - 1; $v2 >= 0; ${v2}--) {";
+        $perl .= $self->_emit_create_path("${v1}->[${v2}]", $keys, $cb, $v2);
         $perl .= "}";
         $perl .= "}";
     }
@@ -534,7 +535,8 @@ sub emit_get_key {
     elsif ($key eq '*') {
         my $i = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
-        $perl .= "for (my ${i} = 0; ${i} < \@{${var}}; ${i}++) {";
+        # loop backwards so that deletions are safe
+        $perl .= "for (my ${i} = \@{${var}} - 1; ${i} >= 0; ${i}--) {";
         $perl .= $cb->("${var}->[${i}]", $i);
         $perl .= "}}";
     }
@@ -596,6 +598,15 @@ sub emit_set_key {
     }
 
     $perl;
+}
+
+sub emit_delete {
+    my ($self, $var, $key, $index_var, $cb) = @_;
+    if ($index_var) {
+       "splice(\@{${var}}, ${index_var}, 1)";
+    } else {
+        $self->emit_delete_key($var, $key, $cb);
+    }
 }
 
 sub emit_delete_key {
@@ -1083,6 +1094,8 @@ be understood by reading the code of existing fix packages.
 =item emit_create_path
 
 =item emit_declare_vars
+
+=item emit_delete
 
 =item emit_delete_key
 

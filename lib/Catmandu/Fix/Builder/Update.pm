@@ -1,19 +1,19 @@
 package Catmandu::Fix::Builder::Update;
 
-use Catmandu::Util qw(is_value is_array_ref is_hash_ref is_code_ref);
 use Catmandu::Sane;
 
 our $VERSION = '1.06';
 
+use Catmandu::Util qw(is_value is_array_ref is_hash_ref is_code_ref);
 use Moo;
+use namespace::clean;
 
 extends 'Catmandu::Fix::Builder';
 
 has value => (is => 'ro');
 
 sub emit {
-    my ($self, $fixer, $label, $var) = @_;
-    $var ||= $fixer->var;
+    my ($self, $fixer, $label, $var, $up_var, $key, $index_var) = @_;
 
     my $val = $self->value;
     my $tmp_var = $fixer->generate_var;
@@ -31,7 +31,8 @@ sub emit {
     }
 
     $fixer->emit_declare_vars($tmp_var, $perl_val) .
-    "if (" . $self->emit_is_cancel_delete($tmp_var) . ") {" .
+    "if (" . $self->emit_is_cancel_and_delete($tmp_var) . ") {" .
+        $fixer->emit_delete($up_var, $key, $index_var) .
     "} elsif (!" . $self->emit_is_cancel($tmp_var) . ") {" .
         "${var} = ${tmp_var};" .
     "}";

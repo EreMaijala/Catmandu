@@ -9,21 +9,23 @@ use Catmandu::Util qw(is_array_ref is_hash_ref);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->get($self->path);
-    $builder->if(\&is_array_ref)->update(sub {
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
         my $val = $_[0];
-        scalar(@$val);
-    });
-    $builder->if(\&is_hash_ref)->update(sub {
-        my $val = $_[0];
-        scalar(keys %$val);
+        if (is_array_ref($val)) {
+            scalar(@$val);
+        } elsif (is_hash_ref($val)) {
+            scalar(keys %$val);
+        } else {
+            $builder->cancel;
+        }
     });
 }
 

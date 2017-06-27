@@ -9,14 +9,19 @@ use Catmandu::Util qw(is_hash_ref);
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 
 sub BUILD {
     my ($self) = @_;
 
-    $self->get($self->path)->if(\&is_hash_ref)->update(sub { [%{$_[0]}] });
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        return $builder->cancel unless is_hash_ref($val);
+        [%$val];
+    });
 }
 
 1;

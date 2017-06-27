@@ -13,19 +13,11 @@ with 'Catmandu::Fix::Base';
 has path => (fix_arg => 1);
 has max  => (fix_arg => 1);
 
-sub emit {
-    my ($self, $fixer) = @_;
-    my $path = $fixer->split_path($self->path);
-    my $max  = $fixer->emit_value($self->max);
+sub BUILD {
+    my ($self) = @_;
 
-    $fixer->emit_create_path(
-        $fixer->var,
-        $path,
-        sub {
-            my $var = shift;
-            "${var} = int(rand(${max}));";
-        }
-    );
+    my $max = $self->max;
+    $self->builder->create($self->path)->update(sub { int(rand($max)) });
 }
 
 1;

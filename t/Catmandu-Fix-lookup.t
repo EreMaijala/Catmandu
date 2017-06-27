@@ -34,4 +34,4 @@ is_deeply $pkg->new('planets.*', 't/planets.csv', 'default', 'Mars')
 is_deeply $pkg->new('planet', 't/planets.tab', 'sep_char', "\t")
     ->fix({planet => 'Earth'}), {planet => 'Terra'}, "pass csv options";
 
-done_testing 8;
+done_testing;

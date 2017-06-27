@@ -8,14 +8,23 @@ use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 
-sub BUILD {
-    my ($self) = @_;
+sub emit {
+    my ($self, $fixer) = @_;
+    my $path = $fixer->split_path($self->path);
+    my $key  = pop @$path;
 
-    $self->delete($self->path);
+    $fixer->emit_walk_path(
+        $fixer->var,
+        $path,
+        sub {
+            my $var = shift;
+            $fixer->emit_delete_key($var, $key);
+        }
+    );
 }
 
 1;

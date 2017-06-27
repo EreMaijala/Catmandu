@@ -10,14 +10,14 @@ use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Base';
 
 has path       => (fix_arg => 1);
 has file       => (fix_arg => 1);
-has default    => (fix_opt => 1);
+has default    => (fix_opt => 1, predicate => 1);
 has delete     => (fix_opt => 1);
 has csv_args   => (fix_opt => 'collect');
-has dictionary => (is      => 'lazy', init_arg => undef);
+has dictionary => (is  => 'lazy', init_arg => undef);
 
 sub _build_dictionary {
     my ($self) = @_;
@@ -40,66 +40,40 @@ sub BUILD {
     my ($self) = @_;
 
     my $dict = $self->dictionary;
+    my $builder = $self->builder;
+    my $cb;
+    if ($self->delete) {
+        $cb = sub {
+            my $val = $_[0];
+            if (is_value($val) && defined(my $new_val = $dict->{$val})) {
+                $new_val;
+            } else {
+                $builder->cancel_and_delete;
+            };
+        };
+    } elsif ($self->has_default) {
+        my $default = $self->default;
+        $cb = sub {
+            my $val = $_[0];
+            if (is_value($val) && defined(my $new_val = $dict->{$val})) {
+                $new_val;
+            } else {
+                $default;
+            };
+        };
+    } else {
+        $cb = sub {
+            my $val = $_[0];
+            if (is_value($val) && defined(my $new_val = $dict->{$val})) {
+                $new_val;
+            } else {
+                $builder->cancel;
+            };
+        };
+    }
 
-    $self->get($self->path)->update(sub {
-        my $val = $_[0];
-        if (is_value($val) && defined(my $lookup = $dict->{$val})) {
-            $lookup;
-        } elsif ($self->delete) {
-            $self->cancel_delete;
-        } elsif (defined(my $default = $self->default)) {
-            $default;
-        } else {
-            $self->cancel;
-        }
-    });
+    $builder->get($self->path)->update($cb);
 }
-
-#sub emit {
-    #my ($self, $fixer) = @_;
-    #my $path     = $fixer->split_path($self->path);
-    #my $key      = pop @$path;
-    #my $dict_var = $fixer->capture($self->dictionary);
-    #my $delete   = $self->delete;
-    #my $default  = $self->default;
-
-    #$fixer->emit_walk_path(
-        #$fixer->var,
-        #$path,
-        #sub {
-            #my $var = shift;
-            #$fixer->emit_get_key(
-                #$var, $key,
-                #sub {
-                    #my $val_var      = shift;
-                    #my $val_index    = shift;
-                    #my $dict_val_var = $fixer->generate_var;
-                    #my $perl
-                        #= "if (is_value(${val_var}) && defined(my ${dict_val_var} = ${dict_var}->{${val_var}})) {"
-                        #. "${val_var} = ${dict_val_var};" . "}";
-                    #if ($delete) {
-                        #$perl .= "else {";
-                        #if (defined $val_index)
-                        #{ # wildcard: only delete the value where the lookup failed
-                            #$perl .= "splice(\@{${var}}, ${val_index}--, 1);";
-                        #}
-                        #else {
-                            #$perl .= $fixer->emit_delete_key($var, $key);
-                        #}
-                        #$perl .= "}";
-                    #}
-                    #elsif (defined $default) {
-                        #$perl
-                            #.= "else {"
-                            #. "${val_var} = "
-                            #. $fixer->emit_value($default) . ";" . "}";
-                    #}
-                    #$perl;
-                #}
-            #);
-        #}
-    #);
-#}
 
 1;
 
