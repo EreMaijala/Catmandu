@@ -14,7 +14,7 @@ use Catmandu::Fix::Builder::If;
 use Moo;
 use namespace::clean;
 
-has steps => (is => 'lazy', default => sub { [] });
+has steps => (is => 'lazy', default => sub {[]});
 
 sub get {
     my ($self, $path) = @_;
@@ -25,7 +25,8 @@ sub get {
 
 sub set {
     my ($self, $path, $value) = @_;
-    my $step = Catmandu::Fix::Builder::Set->new({path => $path, value => $value});
+    my $step
+        = Catmandu::Fix::Builder::Set->new({path => $path, value => $value});
     push @{$self->steps}, $step;
     $step;
 }
@@ -80,7 +81,7 @@ sub emit_is_cancel_and_delete {
 
 sub emit_steps {
     my ($self, @args) = @_;
-    join '', map { $_->emit(@args) } @{$self->steps};
+    join '', map {$_->emit(@args)} @{$self->steps};
 }
 
 sub emit {

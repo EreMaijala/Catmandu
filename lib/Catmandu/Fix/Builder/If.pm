@@ -16,9 +16,8 @@ sub emit {
 
     my $if_var = $fixer->capture($self->condition);
 
-    "if (${if_var}->(${var})) {" .
-        $self->emit_steps($fixer, $label, $var) .
-    "}";
+    "if (${if_var}->(${var})) {"
+        . $self->emit_steps($fixer, $label, $var) . "}";
 }
 
 1;

@@ -17,7 +17,7 @@ sub BUILD {
     my ($self) = @_;
 
     my $max = $self->max;
-    $self->builder->create($self->path)->update(sub { int(rand($max)) });
+    $self->builder->create($self->path)->update(sub {int(rand($max))});
 }
 
 1;

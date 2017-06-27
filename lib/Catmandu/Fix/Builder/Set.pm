@@ -9,7 +9,7 @@ use Moo;
 
 extends 'Catmandu::Fix::Builder';
 
-has path  => (is => 'ro', required => 1);
+has path => (is => 'ro', required => 1);
 has value => (is => 'ro');
 
 sub emit {
@@ -24,17 +24,19 @@ sub emit {
     if (is_code_ref($val)) {
         my $val_var = $fixer->capture($val);
         $perl_val = "${val_var}->();";
-    } elsif (is_value($val)) {
+    }
+    elsif (is_value($val)) {
         $perl_val = $fixer->emit_value($val);
-    } elsif (is_array_ref($val) || is_hash_ref($val)) {
+    }
+    elsif (is_array_ref($val) || is_hash_ref($val)) {
         $perl_val = $fixer->capture($val);
-    } else {
+    }
+    else {
         $perl_val = "undef";
     }
 
     $fixer->emit_walk_path(
-        $var,
-        $path,
+        $var, $path,
         sub {
             my $var = $_[0];
             $fixer->emit_set_key($var, $key, $perl_val);

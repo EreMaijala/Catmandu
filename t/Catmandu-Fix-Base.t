@@ -16,6 +16,7 @@ BEGIN {
 require_ok $pkg;
 
 {
+
     package T::FixBase;
     use Moo;
     with $pkg;

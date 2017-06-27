@@ -17,16 +17,22 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
 
-    my $json = Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1);
+    my $json    = Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1);
     my $builder = $self->builder;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        if (is_maybe_value($val) || is_array_ref($val) || is_hash_ref($val)) {
-            $json->encode($val);
-        } else {
-            $builder->cancel;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            if (   is_maybe_value($val)
+                || is_array_ref($val)
+                || is_hash_ref($val))
+            {
+                $json->encode($val);
+            }
+            else {
+                $builder->cancel;
+            }
         }
-    });
+    );
 }
 
 1;

@@ -18,15 +18,16 @@ sub emit {
     my $key  = pop @$path;
 
     $fixer->emit_create_path(
-        $var,
-        $path,
+        $var, $path,
         sub {
             my ($up_var) = @_;
             $fixer->emit_create_path(
-                $up_var, [$key],
+                $up_var,
+                [$key],
                 sub {
                     my ($var, $index_var) = @_;
-                    $self->emit_steps($fixer, $label, $var, $up_var, $key, $index_var);
+                    $self->emit_steps($fixer, $label, $var, $up_var, $key,
+                        $index_var);
                 }
             );
         }

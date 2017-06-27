@@ -17,13 +17,15 @@ has value => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    my $str = $self->value;
+    my $str     = $self->value;
     my $builder = $self->builder;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        return $builder->cancel unless is_value($val);
-        join('', $val, $str);
-    });
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_value($val);
+            join('', $val, $str);
+        }
+    );
 }
 
 1;

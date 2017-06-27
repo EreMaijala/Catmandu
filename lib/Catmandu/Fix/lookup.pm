@@ -17,7 +17,7 @@ has file       => (fix_arg => 1);
 has default    => (fix_opt => 1, predicate => 1);
 has delete     => (fix_opt => 1);
 has csv_args   => (fix_opt => 'collect');
-has dictionary => (is  => 'lazy', init_arg => undef);
+has dictionary => (is      => 'lazy', init_arg => undef);
 
 sub _build_dictionary {
     my ($self) = @_;
@@ -39,7 +39,7 @@ sub _build_dictionary {
 sub BUILD {
     my ($self) = @_;
 
-    my $dict = $self->dictionary;
+    my $dict    = $self->dictionary;
     my $builder = $self->builder;
     my $cb;
     if ($self->delete) {
@@ -47,28 +47,33 @@ sub BUILD {
             my $val = $_[0];
             if (is_value($val) && defined(my $new_val = $dict->{$val})) {
                 $new_val;
-            } else {
+            }
+            else {
                 $builder->cancel_and_delete;
-            };
+            }
         };
-    } elsif ($self->has_default) {
+    }
+    elsif ($self->has_default) {
         my $default = $self->default;
         $cb = sub {
             my $val = $_[0];
             if (is_value($val) && defined(my $new_val = $dict->{$val})) {
                 $new_val;
-            } else {
+            }
+            else {
                 $default;
-            };
+            }
         };
-    } else {
+    }
+    else {
         $cb = sub {
             my $val = $_[0];
             if (is_value($val) && defined(my $new_val = $dict->{$val})) {
                 $new_val;
-            } else {
+            }
+            else {
                 $builder->cancel;
-            };
+            }
         };
     }
 

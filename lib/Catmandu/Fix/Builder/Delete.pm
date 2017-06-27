@@ -15,11 +15,10 @@ sub emit {
     $var ||= $fixer->var;
 
     my $path = $fixer->split_path($self->path);
-    my $key = pop @$path;
+    my $key  = pop @$path;
 
     $fixer->emit_walk_path(
-        $var,
-        $path,
+        $var, $path,
         sub {
             my $var = $_[0];
             $fixer->emit_delete_key($var, $key);

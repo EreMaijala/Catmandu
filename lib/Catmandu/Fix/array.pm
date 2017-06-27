@@ -17,11 +17,13 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        return $builder->cancel unless is_hash_ref($val);
-        [%$val];
-    });
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_hash_ref($val);
+            [%$val];
+        }
+    );
 }
 
 1;

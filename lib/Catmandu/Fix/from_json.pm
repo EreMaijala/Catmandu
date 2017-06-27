@@ -17,13 +17,15 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
 
-    my $json = Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1);
+    my $json    = Cpanel::JSON::XS->new->utf8(0)->pretty(0)->allow_nonref(1);
     my $builder = $self->builder;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        return $self->cancel unless is_string($val);
-        $json->decode($val);
-    });
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $self->cancel unless is_string($val);
+            $json->decode($val);
+        }
+    );
 }
 
 1;

@@ -457,6 +457,7 @@ sub _emit_create_path {
         my $v2 = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
         $perl .= "my ${v1} = ${var};";
+
         # loop backwards so that deletions are safe
         $perl .= "for (my ${v2} = \@{${v1}} - 1; $v2 >= 0; ${v2}--) {";
         $perl .= $self->_emit_create_path("${v1}->[${v2}]", $keys, $cb, $v2);
@@ -535,6 +536,7 @@ sub emit_get_key {
     elsif ($key eq '*') {
         my $i = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
+
         # loop backwards so that deletions are safe
         $perl .= "for (my ${i} = \@{${var}} - 1; ${i} >= 0; ${i}--) {";
         $perl .= $cb->("${var}->[${i}]", $i);
@@ -603,8 +605,9 @@ sub emit_set_key {
 sub emit_delete {
     my ($self, $var, $key, $index_var, $cb) = @_;
     if ($index_var) {
-       "splice(\@{${var}}, ${index_var}, 1)";
-    } else {
+        "splice(\@{${var}}, ${index_var}, 1)";
+    }
+    else {
         $self->emit_delete_key($var, $key, $cb);
     }
 }

@@ -11,7 +11,7 @@ use Catmandu::Fix::Has;
 with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
-has value => (fix_arg => 1, default => sub {});
+has value => (fix_arg => 1, default => sub { });
 
 sub BUILD {
     my ($self) = @_;

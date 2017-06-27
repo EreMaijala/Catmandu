@@ -17,16 +17,20 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        if (is_array_ref($val)) {
-            scalar(@$val);
-        } elsif (is_hash_ref($val)) {
-            scalar(keys %$val);
-        } else {
-            $builder->cancel;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            if (is_array_ref($val)) {
+                scalar(@$val);
+            }
+            elsif (is_hash_ref($val)) {
+                scalar(keys %$val);
+            }
+            else {
+                $builder->cancel;
+            }
         }
-    });
+    );
 }
 
 1;
