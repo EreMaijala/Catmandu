@@ -8,22 +8,14 @@ use Moo;
 
 extends 'Catmandu::Fix::Builder';
 
-has path => (is => 'ro', required => 1);
-
 sub emit {
-    my ($self, $fixer, $label, $var) = @_;
-    $var ||= $fixer->var;
+    my ($self, $fixer, $label, $var, $up_var, $key, $index_var) = @_;
 
-    my $path = $fixer->split_path($self->path);
-    my $key  = pop @$path;
-
-    $fixer->emit_walk_path(
-        $var, $path,
-        sub {
-            my $var = $_[0];
-            $fixer->emit_delete_key($var, $key);
-        }
-    );
+    if ($key // $index_var) {
+        $fixer->emit_delete($up_var, $key, $index_var);
+    } else {
+        'Catmandu::NotImplemented->throw;';
+    }
 }
 
 1;

@@ -40,7 +40,7 @@ sub create {
 
 sub delete {
     my ($self, $path) = @_;
-    my $step = Catmandu::Fix::Builder::Delete->new({path => $path});
+    my $step = Catmandu::Fix::Builder::Delete->new;
     push @{$self->steps}, $step;
     $self;
 }
