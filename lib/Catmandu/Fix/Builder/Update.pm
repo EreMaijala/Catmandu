@@ -8,7 +8,7 @@ use Catmandu::Util qw(is_value is_array_ref is_hash_ref is_code_ref);
 use Moo;
 use namespace::clean;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Builder::Base';
 
 has value => (is => 'ro');
 

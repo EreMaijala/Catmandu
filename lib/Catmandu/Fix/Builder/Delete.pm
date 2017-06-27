@@ -6,7 +6,7 @@ our $VERSION = '1.0507';
 
 use Moo;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Builder::Base';
 
 sub emit {
     my ($self, $fixer, $label, $var, $up_var, $key, $index_var) = @_;
