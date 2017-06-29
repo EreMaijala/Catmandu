@@ -13,8 +13,9 @@ with 'Catmandu::Fix::Builder::Base';
 has value => (is => 'ro');
 
 sub emit {
-    my ($self, $fixer, $label, $var, $up_var, $key, $index_var) = @_;
+    my ($self, $ctx) = @_;
 
+    my $fixer   = $ctx{fixer};
     my $val     = $self->value;
     my $tmp_var = $fixer->generate_var;
 
@@ -33,16 +34,19 @@ sub emit {
         $perl_val = "undef";
     }
 
-    my $perl = $fixer->emit_declare_vars($tmp_var, $perl_val)
-        . "if (" . $self->emit_is_cancel_and_delete($tmp_var) . ") {";
-    if ($key // $index_var) {
-        $perl .= $fixer->emit_delete($up_var, $key, $index_var);
-    } else {
+    my $perl = $fixer->emit_declare_vars($tmp_var, $perl_val) . "if ("
+        . $self->emit_is_cancel_and_delete($tmp_var) . ") {";
+    if ($ctx{key} // $ctx{index_var}) {
+        $perl
+            .= $fixer->emit_delete($ctx{up_var}, $ctx{key}, $ctx{index_var});
+    }
+    else {
         $perl .= 'Catmandu::NotImplemented->throw;';
     }
-    $perl . "} elsif (!"
+    $perl
+        . "} elsif (!"
         . $self->emit_is_cancel($tmp_var) . ") {"
-        . "${var} = ${tmp_var};" . "}";
+        . "$ctx{var} = ${tmp_var};" . "}";
 }
 
 1;

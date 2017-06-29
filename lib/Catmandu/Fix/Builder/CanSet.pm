@@ -13,7 +13,8 @@ requires 'steps';
 
 sub set {
     my ($self, $path, $value) = @_;
-    my $step = Catmandu::Fix::Builder::Set->new({path => $path, value => $value});
+    my $step
+        = Catmandu::Fix::Builder::Set->new({path => $path, value => $value});
     push @{$self->steps}, $step;
     $step;
 }

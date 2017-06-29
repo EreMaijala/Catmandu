@@ -13,12 +13,12 @@ has path => (is => 'ro', required => 1);
 has value => (is => 'ro');
 
 sub emit {
-    my ($self, $fixer, $label, $var) = @_;
-    $var ||= $fixer->var;
+    my ($self, %ctx) = @_;
 
-    my $path = $fixer->split_path($self->path);
-    my $key  = pop @$path;
-    my $val  = $self->value;
+    my $fixer = $ctx{fixer};
+    my $path  = $fixer->split_path($self->path);
+    my $key   = pop @$path;
+    my $val   = $self->value;
     my $perl_val;
 
     if (is_code_ref($val)) {
@@ -36,7 +36,8 @@ sub emit {
     }
 
     $fixer->emit_walk_path(
-        $var, $path,
+        $ctx{var},
+        $path,
         sub {
             my $var = $_[0];
             $fixer->emit_set_key($var, $key, $perl_val);

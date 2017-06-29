@@ -9,11 +9,12 @@ use Moo;
 with 'Catmandu::Fix::Builder::Base';
 
 sub emit {
-    my ($self, $fixer, $label, $var, $up_var, $key, $index_var) = @_;
+    my ($self, %ctx) = @_;
 
-    if ($key // $index_var) {
-        $fixer->emit_delete($up_var, $key, $index_var);
-    } else {
+    if ($ctx{key} // $ctx{index_var}) {
+        $fixer->emit_delete($ctx{up_var}, $ctx{key}, $ctx{index_var});
+    }
+    else {
         'Catmandu::NotImplemented->throw;';
     }
 }

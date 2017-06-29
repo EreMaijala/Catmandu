@@ -18,5 +18,3 @@ sub emit_steps {
 
 1;
 
-
-

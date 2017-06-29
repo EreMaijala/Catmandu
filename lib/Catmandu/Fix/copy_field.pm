@@ -13,6 +13,13 @@ with 'Catmandu::Fix::Base';
 has old_path => (fix_arg => 1);
 has new_path => (fix_arg => 1);
 
+#sub BUILD {
+#my ($self) = @_;
+#my $builder = $self->builder;
+#$builder->get($self->old_path)->stash;
+#$builder->create($self->new_path)->unstash;
+#}
+
 sub emit {
     my ($self, $fixer) = @_;
     my $old_path = $fixer->split_path($self->old_path);
