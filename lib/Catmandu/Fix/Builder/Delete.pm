@@ -12,7 +12,7 @@ sub emit {
     my ($self, %ctx) = @_;
 
     if ($ctx{key} // $ctx{index_var}) {
-        $fixer->emit_delete($ctx{up_var}, $ctx{key}, $ctx{index_var});
+        $ctx{fixer}->emit_delete($ctx{up_var}, $ctx{key}, $ctx{index_var});
     }
     else {
         'Catmandu::NotImplemented->throw;';

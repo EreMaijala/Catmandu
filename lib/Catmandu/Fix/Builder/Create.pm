@@ -8,9 +8,20 @@ use Moo;
 use namespace::clean;
 
 with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanStash',
-    'Catmandu::Fix::Builder::CanUnStash', 'Catmandu::Fix::Builder::CanUpdate';
+    'Catmandu::Fix::Builder::CanUnstash', 'Catmandu::Fix::Builder::CanUpdate';
 
 has path => (is => 'ro', required => 1);
+
+sub emit_step {
+    my ($self, $step, %ctx) = @_;
+
+    if (my $val_var = $ctx{stash_val_var}) {
+        my $var = $ctx{var};
+        return "${var} = ${val_var};";
+    }
+
+    $step->emit(%ctx);
+}
 
 sub emit {
     my ($self, %ctx) = @_;
@@ -18,8 +29,22 @@ sub emit {
     my $fixer = $ctx{fixer};
     my $path  = $fixer->split_path($self->path);
     my $key   = pop @$path;
+    
+    my $is_unstash = $self->steps->[0] && $self->steps->[0]->isa('Catmandu::Fix::Builder::Unstash');
 
-    $fixer->emit_create_path(
+    my $perl = "";
+
+    # handle the $builder->create('list.$append')->unstash case
+    # TODO make it work with multiple steps
+    # TODO analyze the path
+    if ($is_unstash) {
+        my $stash_var = $ctx{stash_var};
+        my $stash_val_var = $ctx{stash_val_var} = $fixer->generate_var;
+        $perl .= "while (\@{${stash_var}}) {" .
+            $fixer->emit_declare_vars($stash_val_var, "shift(\@{$stash_var})");
+    }
+
+    $perl .= $fixer->emit_create_path(
         $ctx{var},
         $path,
         sub {
@@ -40,6 +65,12 @@ sub emit {
             );
         }
     );
+
+    if ($is_unstash) {
+        $perl .= "}";
+    }
+
+    $perl;
 }
 
 1;

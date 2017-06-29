@@ -1,4 +1,4 @@
-package Catmandu::Fix::Builder::UnStash;
+package Catmandu::Fix::Builder::Unstash;
 
 use Catmandu::Sane;
 
@@ -12,7 +12,7 @@ with 'Catmandu::Fix::Builder::Base';
 sub emit {
     my ($self, %ctx) = @_;
     my ($var, $stash_var) = ($ctx{var}, $ctx{stash_var});
-    "${var} = shift(\@{${stash_var}};";
+    "${var} = shift(\@{${stash_var}});";
 }
 
 1;

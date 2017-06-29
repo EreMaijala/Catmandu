@@ -13,9 +13,10 @@ with 'Catmandu::Fix::Builder::Base';
 has value => (is => 'ro');
 
 sub emit {
-    my ($self, $ctx) = @_;
+    my ($self, %ctx) = @_;
 
     my $fixer   = $ctx{fixer};
+    my $var     = $ctx{var};
     my $val     = $self->value;
     my $tmp_var = $fixer->generate_var;
 
@@ -46,7 +47,7 @@ sub emit {
     $perl
         . "} elsif (!"
         . $self->emit_is_cancel($tmp_var) . ") {"
-        . "$ctx{var} = ${tmp_var};" . "}";
+        . "${var} = ${tmp_var};" . "}";
 }
 
 1;

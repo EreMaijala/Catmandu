@@ -1,4 +1,4 @@
-package Catmandu::Fix::Builder::CanUnStash;
+package Catmandu::Fix::Builder::CanUnstash;
 
 use Catmandu::Sane;
 
