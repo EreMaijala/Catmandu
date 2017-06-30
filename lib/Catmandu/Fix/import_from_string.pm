@@ -4,8 +4,9 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
-use Moo;
 use Catmandu;
+use Catmandu::Util qw(is_string);
+use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
@@ -13,13 +14,19 @@ has path        => (fix_arg => 1);
 has name        => (fix_arg => 1);
 has import_opts => (fix_opt => 'collect');
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $import_opts = $fixer->capture($self->import_opts);
-    my $name        = $self->name();
-    "${var} = Catmandu->import_from_string( ${var}, '$name', %${import_opts} );";
+sub BUILD {
+    my ($self) = @_;
+
+    my $builder = $self->builder;
+    my $import_opts = $self->import_opts;
+    my $name = $self->name;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        return $builder->cancel unless is_string($val);
+        Catmandu->import_from_string($val, $name, %$import_opts);
+    });
 }
 
 1;

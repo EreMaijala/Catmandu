@@ -4,6 +4,7 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Catmandu::Util qw(is_value);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
@@ -12,16 +13,20 @@ has path    => (fix_arg => 1);
 has search  => (fix_arg => 1);
 has replace => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
+sub BUILD {
+    my ($self) = @_;
 
-    "if (is_value(${var})) {"
-        . "utf8::upgrade(${var});"
-        . "${var} =~ "
-        . $fixer->emit_substitution($self->search, $self->replace) . "g;"
-        . "}";
+    my $builder = $self->builder;
+    my $substituter = $builder->substitution($self->search, $self->replace);
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_value($val);
+            $substituter->($val);
+        }
+    );
 }
 
 1;

@@ -19,61 +19,29 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $search  = $builder->regex($self->search);
-    my $replace = $builder->escape_regex($self->replace);
+    my $substituter = $builder->substitution($self->search, $self->replace);
     my $renamer;
 
     $renamer = sub {
         my $data = $_[0];
 
-        if (is_hash_ref($data)) {
+        if (is_array_ref($data)) {
+            $renamer->($_) for @$data;
+        }
+        elsif (is_hash_ref($data)) {
             for my $old (keys %$data) {
-                my $new = $old;
+                my $new = $substituter->($old);
                 my $val = $data->{$old};
-                if ($new =~ s/$search/$replace/g) {
+                if ($new ne $old) {
                     delete $data->{$old};
                     $data->{$new} = $val;
                 }
                 $renamer->($val);
             }
-        }
-        elsif (is_array_ref($data)) {
-            $renamer->($_) for @$data;
         }
     };
 
     $builder->get($self->path)->apply($renamer);
-}
-
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $search  = $self->search;
-    my $replace = $self->replace;
-    my $renamer;
-
-    $renamer = sub {
-        my $data = $_[0];
-
-        if (is_hash_ref($data)) {
-            for my $old (keys %$data) {
-                my $new = $old;
-                my $val = $data->{$old};
-                if ($new =~ s/$search/$replace/g) {
-                    delete $data->{$old};
-                    $data->{$new} = $val;
-                }
-                $renamer->($val);
-            }
-        }
-        elsif (is_array_ref($data)) {
-            $renamer->($_) for @$data;
-        }
-
-        $data;
-    };
-
-    my $renamer_var = $fixer->capture($renamer);
-    "${renamer_var}->(${var});";
 }
 
 1;

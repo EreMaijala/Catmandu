@@ -21,4 +21,4 @@ is_deeply $pkg->new('date', '(\d{2})', '${1}th')->fix({date => "July 23"}),
 is_deeply $pkg->new('words', '/b', '')->fix({words => "/bar"}),
     {words => "ar"}, "Slashes";
 
-done_testing 4;
+done_testing;
