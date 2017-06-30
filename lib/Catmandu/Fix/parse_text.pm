@@ -30,7 +30,8 @@ sub BUILD {
                     +{%+};
                 }
                 else {           # numbered capturing groups
-                    [map {no strict 'refs'; ${$_}} 1 .. (@+ - 1)];
+                    no strict 'refs';
+                    [map {${$_}} 1 .. (@+ - 1)];
                 }
             }
             else {
