@@ -21,7 +21,8 @@ sub BUILD {
         sub {
             my $val = $_[0];
             return $builder->cancel unless is_array_ref($val);
-            $val = [map { is_array_ref($_) ? @$_ : $_ } @$val] while grep { is_array_ref($_) } @$val;
+            $val = [map {is_array_ref($_) ? @$_ : $_} @$val]
+                while grep {is_array_ref($_)} @$val;
             $val;
         }
     );
