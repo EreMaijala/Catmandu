@@ -4,14 +4,16 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Clone qw(clone);
 use Moo;
 use namespace::clean;
 
 with 'Catmandu::Fix::Base';
 
-sub emit {
-    my ($self, $fixer) = @_;
-    $fixer->emit_clone($fixer->var);
+sub BUILD {
+    my ($self) = @_;
+
+    $self->builder->update(\&clone);
 }
 
 1;

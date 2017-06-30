@@ -8,7 +8,8 @@ use Moo;
 use namespace::clean;
 
 with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanGet',
-    'Catmandu::Fix::Builder::CanSet', 'Catmandu::Fix::Builder::CanCreate';
+    'Catmandu::Fix::Builder::CanSet', 'Catmandu::Fix::Builder::CanCreate',
+    'Catmandu::Fix::Builder::CanApply', 'Catmandu::Fix::Builder::CanUpdate';
 
 sub emit {
     my ($self, $fixer, $label, $var) = @_;
