@@ -9,25 +9,30 @@ use Catmandu::Expander ();
 use namespace::clean;
 use Catmandu::Fix::Has;
 
-with 'Catmandu::Fix::Inlineable';
+with 'Catmandu::Fix::Base';
 
 has sep => (fix_opt => 1, default => sub {undef});
 
-sub fix {
-    my ($self, $data) = @_;
-    my $ref = Catmandu::Expander->collapse_hash($data);
+sub BUILD {
+    my ($self) = @_;
 
-    if (defined(my $char = $self->sep)) {
-        my $new_ref = {};
-        for my $key (keys %$ref) {
-            my $val = $ref->{$key};
-            $key =~ s{\.}{$char}g;
-            $new_ref->{$key} = $val;
+    my $sep = $self->sep;
+    $self->builder->update(sub {
+        my $val = $_[0];
+        my $ref = Catmandu::Expander->collapse_hash($val);
+
+        if (defined($sep)) {
+            my $new_ref = {};
+            for my $key (keys %$ref) {
+                my $val = $ref->{$key};
+                $key =~ s{\.}{$sep}g;
+                $new_ref->{$key} = $val;
+            }
+            $ref = $new_ref;
         }
-        $ref = $new_ref;
-    }
 
-    $ref;
+        $ref;
+    });
 }
 
 1;
