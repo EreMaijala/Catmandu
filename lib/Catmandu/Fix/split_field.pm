@@ -4,6 +4,7 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Catmandu::Util qw(is_value);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
@@ -11,13 +12,20 @@ use Catmandu::Fix::Has;
 has path => (fix_arg => 1);
 has split_char => (fix_arg => 1, default => sub {qr'\s+'});
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $split_char = $fixer->emit_string($self->split_char);
+sub BUILD {
+    my ($self) = @_;
 
-    "${var} = [split ${split_char}, ${var}] if is_value(${var});";
+    my $builder = $self->builder;
+    my $pattern = $builder->regex($self->split_char);
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_value($val);
+            [split $pattern, $val];
+        }
+    );
 }
 
 1;
