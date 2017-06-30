@@ -31,7 +31,8 @@ sub BUILD {
                 my $new = $old;
                 my $val = $data->{$old};
                 if ($new =~ s/$search/$replace/g) {
-                    delete $data->{$old};say STDERR "key: $new";
+                    delete $data->{$old};
+                    say STDERR "key: $new";
                     $data->{$new} = $val;
                 }
                 $renamer->($val);

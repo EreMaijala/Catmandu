@@ -23,7 +23,8 @@ sub BUILD {
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
-            return $builder->cancel unless is_array_ref($val) || is_hash_ref($val);
+            return $builder->cancel
+                unless is_array_ref($val) || is_hash_ref($val);
             Catmandu->export_to_string($val, $self->name, $self->export_opts);
         }
     );

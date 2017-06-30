@@ -22,11 +22,14 @@ sub BUILD {
             my $val = $_[0];
             if (is_string($val) and my ($num) = $val =~ /([+-]?\d+)/) {
                 $num + 0;
-            } elsif (is_array_ref($val)) {
+            }
+            elsif (is_array_ref($val)) {
                 scalar(@$val);
-            } elsif (is_hash_ref($val)) {
+            }
+            elsif (is_hash_ref($val)) {
                 scalar(keys %$val);
-            } else {
+            }
+            else {
                 0;
             }
         }

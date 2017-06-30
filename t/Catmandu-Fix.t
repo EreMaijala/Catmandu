@@ -63,6 +63,7 @@ isa_ok $fixer->log->adapter, 'Log::Any::Adapter::Null';
 
 # test error handling
 {
+
     package DieFix;
     use Moo;
     with 'Catmandu::Fix::Base';

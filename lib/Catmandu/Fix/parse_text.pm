@@ -18,21 +18,22 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $regex = $builder->regex($self->pattern);
+    my $regex   = $builder->regex($self->pattern);
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
             if (is_string($val) && $val =~ m/$regex/) {
-                if (@+ < 2) { # no capturing groups
+                if (@+ < 2) {    # no capturing groups
                     $builder->cancel;
                 }
-                elsif (%+) { # named capturing groups
+                elsif (%+) {     # named capturing groups
                     +{%+};
                 }
-                else { # numbered capturing groups
-                    [ map { no strict 'refs'; ${$_} } 1..(@+ - 1) ];
+                else {           # numbered capturing groups
+                    [map {no strict 'refs'; ${$_}} 1 .. (@+ - 1)];
                 }
-            } else {
+            }
+            else {
                 $builder->cancel;
             }
         }

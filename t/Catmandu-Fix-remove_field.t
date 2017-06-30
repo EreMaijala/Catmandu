@@ -24,14 +24,14 @@ is_deeply $pkg->new('many.*.remove')->fix(
     {many => [{keep => 'me'}, {keep => 'me'}]},
     "remove nested field with wildcard";
 
-is_deeply $pkg->new('data.$first')->fix({data => [qw(0 1 2)]}), {data => [qw(1 2)]},
-    'remove $first test';
+is_deeply $pkg->new('data.$first')->fix({data => [qw(0 1 2)]}),
+    {data => [qw(1 2)]}, 'remove $first test';
 
-is_deeply $pkg->new('data.$last')->fix({data => [qw(0 1 2)]}), {data => [qw(0 1)]},
-    'remove $last test';
+is_deeply $pkg->new('data.$last')->fix({data => [qw(0 1 2)]}),
+    {data => [qw(0 1)]}, 'remove $last test';
 
-is_deeply $pkg->new('data.1')->fix({data => [qw(0 1 2)]}), {data => [qw(0 2)]},
-    'remove position test arary';
+is_deeply $pkg->new('data.1')->fix({data => [qw(0 1 2)]}),
+    {data => [qw(0 2)]}, 'remove position test arary';
 
 is_deeply $pkg->new('data.1')->fix({data => {1 => 1}}), {data => {}},
     'remove position test hash';

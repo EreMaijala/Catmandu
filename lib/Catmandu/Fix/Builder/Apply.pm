@@ -14,9 +14,9 @@ has cb => (is => 'ro');
 sub emit {
     my ($self, %ctx) = @_;
 
-    my $cb      = $self->cb;
-    my $var     = $ctx{var};
-    my $cb_var  = $ctx{fixer}->capture($cb);
+    my $cb     = $self->cb;
+    my $var    = $ctx{var};
+    my $cb_var = $ctx{fixer}->capture($cb);
 
     "${cb_var}->(${var});";
 }

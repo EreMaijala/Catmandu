@@ -20,17 +20,18 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $search = $self->search;
+    my $search  = $self->search;
     my $cb;
     if ($self->multiple) {
         $cb = sub {
             my $val = $_[0];
             if (is_string($val)) {
-                [ indexes { $_ eq $search } unpack('(A)*', $val) ];
+                [indexes {$_ eq $search} unpack('(A)*', $val)];
             }
             elsif (is_array_ref($val)) {
-                [ indexes { $_ eq $search } @$val ];
-            } else {
+                [indexes {$_ eq $search} @$val];
+            }
+            else {
                 $builder->cancel;
             }
         };
@@ -42,8 +43,9 @@ sub BUILD {
                 index($val, $search);
             }
             elsif (is_array_ref($val)) {
-                first_index { $_ eq $search } @$val;
-            } else {
+                first_index {$_ eq $search} @$val;
+            }
+            else {
                 $builder->cancel;
             }
         };

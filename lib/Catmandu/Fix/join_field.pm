@@ -17,13 +17,13 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
+    my $builder   = $self->builder;
     my $join_char = $self->join_char;
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
             return $builder->cancel unless is_array_ref($val);
-            join($join_char, grep { is_value($_) } @$val);
+            join($join_char, grep {is_value($_)} @$val);
         }
     );
 }

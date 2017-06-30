@@ -33,7 +33,7 @@ sub emit_is_cancel_and_delete {
 sub escape_regex {
     my ($self, $str) = @_;
     $str =~ s/\//\\\//g;
-    $str =~ s/\\$/\\\\/; # pattern can't end with an escape
+    $str =~ s/\\$/\\\\/;    # pattern can't end with an escape
     $str;
 }
 

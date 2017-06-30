@@ -5,6 +5,7 @@ use Catmandu::Sane;
 our $VERSION = '1.0602';
 
 use Catmandu;
+use Catmandu::Util qw(is_hash_ref);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
@@ -16,7 +17,7 @@ has store_args => (fix_opt => 'collect');
 has store      => (is      => 'lazy', init_arg => undef);
 has bag        => (is      => 'lazy', init_arg => undef);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
 sub _build_store {
     my ($self) = @_;
@@ -30,11 +31,17 @@ sub _build_bag {
         : $self->store->bag;
 }
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $bag_var = $fixer->capture($self->bag);
+sub BUILD {
+    my ($self) = @_;
 
-    "if (is_hash_ref(${var})) {" . "${bag_var}->add(${var});" . "}";
+    my $builder = $self->builder;
+    my $bag     = $self->bag;
+    $builder->get($self->path)->apply(
+        sub {
+            my $val = $_[0];
+            $bag->add($val) if is_hash_ref($val);
+        }
+    );
 }
 
 1;

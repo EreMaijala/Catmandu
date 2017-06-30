@@ -18,7 +18,7 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $regex = $builder->regex($self->search);
+    my $regex   = $builder->regex($self->search);
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
