@@ -19,14 +19,16 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
+    my $builder     = $self->builder;
     my $import_opts = $self->import_opts;
-    my $name = $self->name;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        return $builder->cancel unless is_string($val);
-        Catmandu->import_from_string($val, $name, %$import_opts);
-    });
+    my $name        = $self->name;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_string($val);
+            Catmandu->import_from_string($val, $name, %$import_opts);
+        }
+    );
 }
 
 1;

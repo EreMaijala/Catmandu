@@ -47,7 +47,8 @@ sub substitution {
     my ($self, $search, $replace) = @_;
     $search  = $self->regex($search);
     $replace = $self->escape_regex($replace);
-    eval qq|sub {my \$str = \$_[0]; utf8::upgrade(\$str); \$str =~ s/$search/$replace/g; \$str}|;
+    eval
+        qq|sub {my \$str = \$_[0]; utf8::upgrade(\$str); \$str =~ s/$search/$replace/g; \$str}|;
 }
 
 1;
