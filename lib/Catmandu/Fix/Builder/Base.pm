@@ -30,5 +30,18 @@ sub emit_is_cancel_and_delete {
     "(is_hash_ref(${var}) && Scalar::Util::refaddr(${var}) == $addr)";
 }
 
+sub escape_regex {
+    my ($self, $str) = @_;
+    $str =~ s/\//\\\//g;
+    $str =~ s/\\$/\\\\/; # pattern can't end with an escape
+    $str;
+}
+
+sub regex {
+    my ($self, $str) = @_;
+    $str = $self->escape_regex($str);
+    qr/$str/;
+}
+
 1;
 

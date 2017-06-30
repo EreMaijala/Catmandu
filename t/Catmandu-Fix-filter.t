@@ -22,4 +22,7 @@ is_deeply $pkg->new('words', 'Przewalski')
 is_deeply $pkg->new('words', '/bar')->fix({words => [qw(/bar bor)]}),
     {words => [qw{/bar}]};
 
-done_testing 4;
+is_deeply $pkg->new('words', 'bar\\')->fix({words => [qw(bar\\ bor)]}),
+    {words => [qw{bar\\}]};
+
+done_testing;

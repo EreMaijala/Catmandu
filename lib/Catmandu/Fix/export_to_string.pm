@@ -5,6 +5,7 @@ use Catmandu::Sane;
 our $VERSION = '1.0602';
 
 use Moo;
+use Catmandu::Util qw(is_array_ref is_hash_ref);
 use Catmandu;
 use namespace::clean;
 use Catmandu::Fix::Has;
@@ -13,24 +14,19 @@ has path        => (fix_arg => 1);
 has name        => (fix_arg => 1);
 has export_opts => (fix_opt => 'collect');
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
+sub BUILD {
+    my ($self) = @_;
 
-    my $name        = $self->name();
-    my $export_opts = $fixer->capture($self->export_opts);
-    my $perl        = <<EOF;
-
-if( is_hash_ref( ${var} ) || is_array_ref( ${var} ) ) {
-
-    ${var} = Catmandu->export_to_string( ${var}, '$name', %${export_opts} );
-
-}
-
-EOF
-
-    $perl;
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_array_ref($val) || is_hash_ref($val);
+            Catmandu->export_to_string($val, $self->name, $self->export_opts);
+        }
+    );
 }
 
 1;

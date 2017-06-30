@@ -1,6 +1,10 @@
 package Catmandu::Fix::compact;
 
 use Catmandu::Sane;
+
+our $VERSION = '1.0602';
+
+use Catmandu::Util qw(is_array_ref);
 use Moo;
 use Catmandu::Fix::Has;
 
@@ -8,28 +12,17 @@ with 'Catmandu::Fix::Base';
 
 has path => (fix_arg => 1);
 
-sub emit {
-    my ($self, $fixer) = @_;
-    my $path = $fixer->split_path($self->path);
-    my $key  = pop @$path;
+sub BUILD {
+    my ($self) = @_;
 
-    $fixer->emit_walk_path(
-        $fixer->var,
-        $path,
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(
         sub {
-            my $var = shift;
-            $fixer->emit_get_key(
-                $var, $key,
-                sub {
-                    my $var = shift;
-
-                    "if (is_array_ref(${var})) {"
-                        . "${var} = [grep defined, \@{${var}}];" . "}";
-                }
-            );
+            my $val = $_[0];
+            return $builder->cancel unless is_array_ref($val);
+            [grep defined, @$val];
         }
     );
-
 }
 
 =head1 NAME

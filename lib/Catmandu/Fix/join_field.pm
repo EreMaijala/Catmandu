@@ -4,6 +4,7 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Catmandu::Util qw(is_value is_array_ref);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
@@ -11,15 +12,20 @@ use Catmandu::Fix::Has;
 has path => (fix_arg => 1);
 has join_char => (fix_arg => 1, default => sub {''});
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $join_char = $fixer->emit_string($self->join_char);
+sub BUILD {
+    my ($self) = @_;
 
-    "if (is_array_ref(${var})) {"
-        . "${var} = join(${join_char}, grep { is_value(\$_) } \@{${var}});"
-        . "}";
+    my $builder = $self->builder;
+    my $join_char = $self->join_char;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_array_ref($val);
+            join($join_char, grep { is_value($_) } @$val);
+        }
+    );
 }
 
 1;

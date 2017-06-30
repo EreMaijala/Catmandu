@@ -13,7 +13,37 @@ has path    => (fix_arg => 1);
 has search  => (fix_arg => 1);
 has replace => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
+
+sub BUILD {
+    my ($self) = @_;
+
+    my $builder = $self->builder;
+    my $search  = $builder->regex($self->search);
+    my $replace = $builder->escape_regex($self->replace);
+    my $renamer;
+
+    $renamer = sub {
+        my $data = $_[0];
+
+        if (is_hash_ref($data)) {
+            for my $old (keys %$data) {
+                my $new = $old;
+                my $val = $data->{$old};
+                if ($new =~ s/$search/$replace/g) {
+                    delete $data->{$old};say STDERR "key: $new";
+                    $data->{$new} = $val;
+                }
+                $renamer->($val);
+            }
+        }
+        elsif (is_array_ref($data)) {
+            $renamer->($_) for @$data;
+        }
+    };
+
+    $builder->get($self->path)->apply($renamer);
+}
 
 sub emit_value {
     my ($self, $var, $fixer) = @_;

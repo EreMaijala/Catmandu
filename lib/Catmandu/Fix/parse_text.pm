@@ -4,6 +4,7 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Catmandu::Util qw(is_string);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
@@ -11,23 +12,31 @@ use Catmandu::Fix::Has;
 has path    => (fix_arg => 1);
 has pattern => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-    my $pattern = $fixer->emit_match($self->pattern);
+sub BUILD {
+    my ($self) = @_;
 
-    "if (is_string(${var}) && ${var} =~ ${pattern}) {" . "if (\@+ < 2) { " .
-
-        # # no capturing groups
-        "}" . "elsif (\%+) { " .
-
-        # named capturing groups
-        "${var} = { \%+ }; " . "} else {" .
-
-        # numbered capturing groups
-        "no strict 'refs';"
-        . "${var} = [ map { \${\$_} } 1..(\@{+} - 1) ];" . "}" . "}";
+    my $builder = $self->builder;
+    my $regex = $builder->regex($self->pattern);
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            if (is_string($val) && $val =~ m/$regex/) {
+                if (@+ < 2) { # no capturing groups
+                    $builder->cancel;
+                }
+                elsif (%+) { # named capturing groups
+                    +{%+};
+                }
+                else { # numbered capturing groups
+                    [ map { no strict 'refs'; ${$_} } 1..(@+ - 1) ];
+                }
+            } else {
+                $builder->cancel;
+            }
+        }
+    );
 }
 
 1;
