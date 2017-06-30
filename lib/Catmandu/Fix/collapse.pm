@@ -4,8 +4,9 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
-use Moo;
+use Catmandu::Util qw(is_hash_ref);
 use Catmandu::Expander ();
+use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
@@ -16,9 +17,13 @@ has sep => (fix_opt => 1, default => sub {undef});
 sub BUILD {
     my ($self) = @_;
 
+    my $builder = $self->builder;
     my $sep = $self->sep;
-    $self->builder->update(sub {
+    $builder->update(sub {
         my $val = $_[0];
+
+        return $builder->cancel unless is_hash_ref($val);
+
         my $ref = Catmandu::Expander->collapse_hash($val);
 
         if (defined($sep)) {

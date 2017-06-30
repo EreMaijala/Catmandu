@@ -4,30 +4,39 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Catmandu::Util qw(is_hash_ref);
+use Catmandu::Expander ();
 use Moo;
 use namespace::clean;
-use Catmandu::Expander ();
 use Catmandu::Fix::Has;
 
-with 'Catmandu::Fix::Inlineable';
+with 'Catmandu::Fix::Base';
 
 has sep => (fix_opt => 1, default => sub {undef});
 
-sub fix {
-    my ($self, $data) = @_;
+sub BUILD {
+    my ($self) = @_;
 
-    if (defined(my $char = $self->sep)) {
-        my $new_ref = {};
-        for my $key (keys %$data) {
-            my $val = $data->{$key};
-            $key =~ s{$char}{\.}g;
-            $new_ref->{$key} = $val;
+    my $builder = $self->builder;
+    my $sep = $self->sep;
+    $builder->update(sub {
+        my $val = $_[0];
+
+        return $builder->cancel unless is_hash_ref($val);
+
+        if (defined($sep)) {
+            my $new_ref = {};
+            for my $key (keys %$val) {
+                my $val = $val->{$key};
+                $key =~ s{$sep}{\.}g;
+                $new_ref->{$key} = $val;
+            }
+
+            $val = $new_ref;
         }
 
-        $data = $new_ref;
-    }
-
-    Catmandu::Expander->expand_hash($data);
+        Catmandu::Expander->expand_hash($val);
+    });
 }
 
 1;
