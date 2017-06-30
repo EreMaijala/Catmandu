@@ -18,26 +18,28 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $sep = $self->sep;
-    $builder->update(sub {
-        my $val = $_[0];
+    my $sep     = $self->sep;
+    $builder->update(
+        sub {
+            my $val = $_[0];
 
-        return $builder->cancel unless is_hash_ref($val);
+            return $builder->cancel unless is_hash_ref($val);
 
-        my $ref = Catmandu::Expander->collapse_hash($val);
+            my $ref = Catmandu::Expander->collapse_hash($val);
 
-        if (defined($sep)) {
-            my $new_ref = {};
-            for my $key (keys %$ref) {
-                my $val = $ref->{$key};
-                $key =~ s{\.}{$sep}g;
-                $new_ref->{$key} = $val;
+            if (defined($sep)) {
+                my $new_ref = {};
+                for my $key (keys %$ref) {
+                    my $val = $ref->{$key};
+                    $key =~ s{\.}{$sep}g;
+                    $new_ref->{$key} = $val;
+                }
+                $ref = $new_ref;
             }
-            $ref = $new_ref;
-        }
 
-        $ref;
-    });
+            $ref;
+        }
+    );
 }
 
 1;
