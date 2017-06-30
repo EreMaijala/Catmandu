@@ -36,7 +36,7 @@ sub emit {
 
     # handle the $builder->create('list.$append')->unstash case
     # TODO make it work with multiple steps
-    # TODO analyze the path
+    # TODO check the path for $append/$prepend/*
     if ($is_unstash) {
         my $stash_var = $ctx{stash_var};
         my $stash_val_var = $ctx{stash_val_var} = $fixer->generate_var;

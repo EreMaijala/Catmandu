@@ -27,4 +27,4 @@ is_deeply $pkg->new('old', 'new.$append')
     ->fix({old => 'hello', new => ['world']}), {new => ['world', 'hello']},
     "move field creates intermediate path";
 
-done_testing 5;
+done_testing;
