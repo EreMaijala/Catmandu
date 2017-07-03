@@ -12,8 +12,10 @@ use namespace::clean;
 requires 'steps';
 
 sub stash {
-    my ($self) = @_;
-    my $step = Catmandu::Fix::Builder::Stash->new;
+    my ($self, $name) = @_;
+    my $args = {};
+    $args->{name} = $name if defined $name;
+    my $step = Catmandu::Fix::Builder::Stash->new($args);
     push @{$self->steps}, $step;
     $self;
 }

@@ -9,10 +9,29 @@ use namespace::clean;
 
 with 'Catmandu::Fix::Builder::Base';
 
+has names => (is => 'ro', default => sub {['_']});
+has cb => (is => 'ro');
+
 sub emit {
     my ($self, %ctx) = @_;
-    my ($var, $stash_var) = ($ctx{var}, $ctx{stash_var});
-    "${var} = shift(\@{${stash_var}});";
+    my ($fixer, $var, $stash_var) = ($ctx{fixer}, $ctx{var}, $ctx{stash_var});
+    if ($self->cb) {
+        my $cb_var = $fixer->capture($self->cb);
+        my $args   = join(
+            ', ',
+            map {
+                my $key = $fixer->emit_string($_);
+                "${stash_var}->{${key}} ||= []"
+            } @{$self->names}
+        );
+        "${var} = ${cb_var}->(${var}, ${args});";
+    }
+
+    # TODO handle multiple names and no cb
+    else {
+        my $key = $self->names->[0];
+        "${var} = shift(\@{${stash_var}->{${key}} ||= []});";
+    }
 }
 
 1;
