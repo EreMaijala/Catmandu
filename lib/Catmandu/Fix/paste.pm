@@ -18,7 +18,7 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $values = $self->values;
+    my $values  = $self->values;
     my @parsed_values;
     my $join_char = ' ';
 
@@ -42,10 +42,13 @@ sub BUILD {
         }
     }
 
-    $builder->create($self->path)->unstash('vals', sub {
-        my ($old_val, $vals) = @_;
-        join($join_char, @$vals);
-    });
+    $builder->create($self->path)->unstash(
+        'vals',
+        sub {
+            my ($old_val, $vals) = @_;
+            join($join_char, @$vals);
+        }
+    );
 }
 
 1;

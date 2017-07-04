@@ -14,7 +14,7 @@ requires 'steps';
 sub stash {
     my ($self, $name, $value) = @_;
     my $args = {};
-    $args->{name} = $name if defined $name;
+    $args->{name}  = $name  if defined $name;
     $args->{value} = $value if @_ == 3;
     my $step = Catmandu::Fix::Builder::Stash->new($args);
     push @{$self->steps}, $step;

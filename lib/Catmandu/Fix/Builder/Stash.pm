@@ -17,11 +17,13 @@ sub emit {
     my ($self, %ctx) = @_;
     my ($fixer, $var, $stash_var) = ($ctx{fixer}, $ctx{var}, $ctx{stash_var});
     my $name = $fixer->emit_string($self->name);
+
     # TODO allow other values than strings (cfr update)
     if ($self->has_value) {
         my $val = $fixer->emit_string($self->value);
         "unshift(\@{${stash_var}->{${name}} ||= []}, ${val});";
-    } else {
+    }
+    else {
         "unshift(\@{${stash_var}->{${name}} ||= []}, clone(${var}));";
     }
 }

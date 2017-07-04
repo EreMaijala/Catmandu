@@ -18,17 +18,20 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $spec = $self->spec;
+    my $spec    = $self->spec;
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
             if (is_array_ref($val)) {
                 sprintf($spec, @$val);
-            } elsif (is_hash_ref($val)) {
+            }
+            elsif (is_hash_ref($val)) {
                 sprintf($spec, %$val);
-            } elsif (is_string($val)) {
+            }
+            elsif (is_string($val)) {
                 sprintf($spec, $val);
-            } else {
+            }
+            else {
                 $self->cancel;
             }
         }

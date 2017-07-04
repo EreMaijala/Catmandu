@@ -31,7 +31,6 @@ sub emit {
                 "splice(\@{${stash_var}->{${key}}}, 0, \@{${stash_var}->{${key}}});"
             } @{$self->names}
         );
-;
     }
 
     # TODO handle multiple names and no cb
