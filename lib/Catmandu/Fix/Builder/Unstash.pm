@@ -21,15 +21,22 @@ sub emit {
             ', ',
             map {
                 my $key = $fixer->emit_string($_);
-                "${stash_var}->{${key}} ||= []"
+                "[reverse(\@{${stash_var}->{${key}} ||= []})]"
             } @{$self->names}
         );
-        "${var} = ${cb_var}->(${var}, ${args});";
+        "${var} = ${cb_var}->(${var}, ${args});" . join(
+            '',
+            map {
+                my $key = $fixer->emit_string($_);
+                "splice(\@{${stash_var}->{${key}}}, 0, \@{${stash_var}->{${key}}});"
+            } @{$self->names}
+        );
+;
     }
 
     # TODO handle multiple names and no cb
     else {
-        my $key = $self->names->[0];
+        my $key = $fixer->emit_string($self->names->[0]);
         "${var} = shift(\@{${stash_var}->{${key}} ||= []});";
     }
 }

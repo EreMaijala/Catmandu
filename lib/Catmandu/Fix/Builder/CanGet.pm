@@ -4,8 +4,7 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0507';
 
-use Catmandu::Util;
-use Catmandu::Fix::Builder::Get;
+require Catmandu::Fix::Builder::Get;
 use Moo::Role;
 use namespace::clean;
 

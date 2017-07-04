@@ -25,4 +25,4 @@ is_deeply $pkg->new('my.field', 'a', '~b', 'c')
     {my => {field => 'A b C'}, a => 'A', b => 'B', c => 'C'},
     'literal strings';
 
-done_testing 4;
+done_testing;

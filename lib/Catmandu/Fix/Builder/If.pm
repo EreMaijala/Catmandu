@@ -6,18 +6,21 @@ our $VERSION = '1.0507';
 
 use Moo;
 
-extends 'Catmandu::Fix::Builder';
+with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanSet',
+    'Catmandu::Fix::Builder::CanCreate',  'Catmandu::Fix::Builder::CanStash',
+    'Catmandu::Fix::Builder::CanUnstash', 'Catmandu::Fix::Builder::CanApply',
+    'Catmandu::Fix::Builder::CanUpdate',  'Catmandu::Fix::Builder::CanDelete',  'Catmandu::Fix::Builder::CanIf';
 
 has condition => (is => 'ro');
 
 sub emit {
-    my ($self, $fixer, $label, $var) = @_;
-    $var ||= $fixer->var;
+    my ($self, %ctx) = @_;
 
-    my $if_var = $fixer->capture($self->condition);
+    my $var = $ctx{var};
+    my $if_var = $ctx{fixer}->capture($self->condition);
 
     "if (${if_var}->(${var})) {"
-        . $self->emit_steps($fixer, $label, $var) . "}";
+        . $self->emit_steps(%ctx) . "}";
 }
 
 1;

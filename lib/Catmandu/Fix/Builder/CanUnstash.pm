@@ -6,7 +6,7 @@ our $VERSION = '1.0507';
 
 use Clone qw(clone);
 use Catmandu::Util qw(is_code_ref);
-use Catmandu::Fix::Builder::Unstash;
+require Catmandu::Fix::Builder::Unstash;
 use Moo::Role;
 use namespace::clean;
 

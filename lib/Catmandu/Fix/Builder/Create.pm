@@ -9,7 +9,7 @@ use namespace::clean;
 
 with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanStash',
     'Catmandu::Fix::Builder::CanUnstash', 'Catmandu::Fix::Builder::CanApply',
-    'Catmandu::Fix::Builder::CanUpdate';
+    'Catmandu::Fix::Builder::CanUpdate',  'Catmandu::Fix::Builder::CanIf';
 
 has path => (is => 'ro', required => 1);
 
