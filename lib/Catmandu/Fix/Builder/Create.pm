@@ -19,6 +19,7 @@ sub emit_step {
     my $perl = $step->emit(%ctx);
 
     # handle the $builder->create('list.$append')->unstash case
+    # TODO shouldn't do this if cb
     if ($step->isa('Catmandu::Fix::Builder::Unstash')) {
         my $var     = $ctx{var};
         my $val_var = $ctx{stash_val_var};

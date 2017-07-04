@@ -20,48 +20,6 @@ sub BUILD {
     $builder->create($self->new_path)->unstash;
 }
 
-#sub emit {
-#my ($self, $fixer) = @_;
-#my $old_path = $fixer->split_path($self->old_path);
-#my $old_key  = pop @$old_path;
-#my $new_path = $fixer->split_path($self->new_path);
-
-#my $vals        = $fixer->generate_var;
-#my $current_val = $fixer->generate_var;
-#my $perl        = "";
-#$perl .= $fixer->emit_declare_vars($vals, '[]');
-#$perl .= $fixer->emit_declare_vars($current_val);
-
-#$perl .= $fixer->emit_walk_path(
-#$fixer->var,
-#$old_path,
-#sub {
-#my $var = shift;
-#$fixer->emit_get_key(
-#$var, $old_key,
-#sub {
-#my $var = shift;
-#"unshift(\@{${vals}}, ${var});";
-#}
-#);
-#}
-#);
-
-#$perl
-#.= "while (\@{${vals}}) {"
-#. "${current_val} = clone(shift(\@{${vals}}));"
-#. $fixer->emit_create_path(
-#$fixer->var,
-#$new_path,
-#sub {
-#my $var = shift;
-#"${var} = ${current_val};";
-#}
-#) . "}";
-
-#$perl;
-#}
-
 1;
 
 __END__
