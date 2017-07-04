@@ -18,32 +18,43 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    my $args = $self->args;
+    my $args    = $self->args;
     my $cb;
     if (@$args == 1) {
         $cb = sub {
             my $val = $_[0];
             return $builder->cancel unless is_value($val);
             my $new_val;
-            eval { no warnings 'substr'; $new_val = substr(as_utf8($val), $args->[0]) };
+            eval {
+                no warnings 'substr';
+                $new_val = substr(as_utf8($val), $args->[0]);
+            };
             $new_val // $builder->cancel;
-        }
-    } elsif (@$args == 2) {
+            }
+    }
+    elsif (@$args == 2) {
         $cb = sub {
             my $val = $_[0];
             return $builder->cancel unless is_value($val);
             my $new_val;
-            eval { no warnings 'substr'; $new_val = substr(as_utf8($val), $args->[0], $args->[1]) };
+            eval {
+                no warnings 'substr';
+                $new_val = substr(as_utf8($val), $args->[0], $args->[1]);
+            };
             $new_val // $builder->cancel;
-        }
-    } else {
+            }
+    }
+    else {
         $cb = sub {
             my $val = $_[0];
             return $builder->cancel unless is_value($val);
             my $new_val = as_utf8($val);
-            eval { no warnings 'substr'; substr($new_val, $args->[0], $args->[1]) = $args->[2] } // return $builder->cancel;
+            eval {
+                no warnings 'substr';
+                substr($new_val, $args->[0], $args->[1]) = $args->[2];
+            } // return $builder->cancel;
             $new_val;
-        }
+            }
     }
 
     $builder->get($self->path)->update($cb);

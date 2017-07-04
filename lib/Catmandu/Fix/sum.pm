@@ -21,7 +21,8 @@ sub BUILD {
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
-            return $builder->cancel unless is_array_ref($val) && all { is_number($_) } @$val;
+            return $builder->cancel
+                unless is_array_ref($val) && all {is_number($_)} @$val;
             sum(@$val) // 0;
         }
     );
