@@ -25,4 +25,4 @@ is_deeply $pkg->new('arr.*.rel', 5)
     ->fix({arr => [{rel => "grandson"}, {rel => "granddaughter"}]}),
     {arr => [{rel => "son"}, {rel => "daughter"}]};
 
-done_testing 6;
+done_testing;

@@ -4,20 +4,27 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
-use List::Util ();
+use Catmandu::Util qw(is_number is_array_ref);
+use List::Util qw(all sum);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var) = @_;
+sub BUILD {
+    my ($self) = @_;
 
-    "if (is_array_ref(${var})) {"
-        . "${var} = List::Util::sum(\@{${var}}) // 0;" . "}";
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            return $builder->cancel unless is_array_ref($val) && all { is_number($_) } @$val;
+            sum(@$val) // 0;
+        }
+    );
 }
 
 1;
