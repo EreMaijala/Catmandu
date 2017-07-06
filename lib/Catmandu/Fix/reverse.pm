@@ -4,21 +4,28 @@ use Catmandu::Sane;
 
 our $VERSION = '1.0602';
 
+use Catmandu::Util qw(is_string is_array_ref);
 use Moo;
 use namespace::clean;
 use Catmandu::Fix::Has;
 
 has path => (fix_arg => 1);
 
-with 'Catmandu::Fix::SimpleGetValue';
+with 'Catmandu::Fix::Base';
 
-sub emit_value {
-    my ($self, $var, $fixer) = @_;
-
-    "if (is_array_ref(${var})) {"
-        . "${var} = [reverse(\@{${var}})];" . "}"
-        . "elsif (is_string(${var})) {"
-        . "${var} = scalar(reverse(${var}));" . "}";
+sub BUILD {
+    my ($self) = @_;
+    my $builder = $self->builder;
+    $builder->get($self->path)->update(sub {
+        my $val = $_[0];
+        if (is_array_ref($val)) {
+            [reverse(@$val)];
+        } elsif (is_string($val)) {
+            scalar(reverse($val));
+        } else {
+            $builder->cancel;
+        }
+    });
 }
 
 1;
