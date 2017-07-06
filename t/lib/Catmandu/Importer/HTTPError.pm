@@ -12,13 +12,13 @@ sub generator {
     my ($self) = @_;
     sub {
         Catmandu::HTTPError->throw(
-            code => $self->code,
-            url => 'http://localhost',
-            method => 'GET',
-            request_headers => [],
-            request_body => '',
+            code             => $self->code,
+            url              => 'http://localhost',
+            method           => 'GET',
+            request_headers  => [],
+            request_body     => '',
             response_headers => [],
-            response_body => $self->code,
+            response_body    => $self->code,
         );
     };
 }

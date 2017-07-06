@@ -21,10 +21,10 @@ has undef_position => (fix_opt => 1, default => sub {'last'});
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
-    my $uniq    = $self->uniq;
-    my $reverse = $self->reverse;
-    my $numeric = $self->numeric;
+    my $builder        = $self->builder;
+    my $uniq           = $self->uniq;
+    my $reverse        = $self->reverse;
+    my $numeric        = $self->numeric;
     my $undef_position = $self->undef_position;
     $builder->get($self->path)->update(
         sub {
@@ -33,8 +33,8 @@ sub BUILD {
             return $builder->cancel unless is_array_ref($val);
 
             #filter out undef
-            my $undefs = [ grep { !defined($_) } @$val ];
-            $val = [ grep { defined($_) } @$val ];
+            my $undefs = [grep {!defined($_)} @$val];
+            $val = [grep {defined($_)} @$val];
 
             #uniq
             if ($uniq) {
@@ -43,16 +43,16 @@ sub BUILD {
 
             #sort
             if ($reverse && $numeric) {
-                $val = [sort { $b <=> $a } @$val];
+                $val = [sort {$b <=> $a} @$val];
             }
             elsif ($numeric) {
-                $val = [sort { $a <=> $b } @$val];
+                $val = [sort {$a <=> $b} @$val];
             }
             elsif ($reverse) {
-                $val = [sort { $b cmp $a } @$val];
+                $val = [sort {$b cmp $a} @$val];
             }
             else {
-                $val = [sort { $a cmp $b } @$val];
+                $val = [sort {$a cmp $b} @$val];
             }
 
             #insert undef at the end

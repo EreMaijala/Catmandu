@@ -13,7 +13,7 @@ has store_name => (fix_opt => 1, init_arg => 'store');
 has bag_name   => (fix_opt => 1, init_arg => 'bag');
 has limit      => (fix_opt => 1, init_arg => undef, default => sub {20});
 has start      => (fix_opt => 1, init_arg => undef, default => sub {0});
-has sort => (fix_opt => 1, init_arg => undef, default => sub {''});
+has sort       => (fix_opt => 1, init_arg => undef, default => sub {''});
 has store_args => (fix_opt => 'collect');
 
 #internal
@@ -33,17 +33,29 @@ sub _build_bag {
 }
 
 sub BUILD {
-    my ($self) = @_;
+    my ($self)  = @_;
     my $builder = $self->builder;
     my $bag     = $self->bag;
     my $limit   = $self->limit;
     my $start   = $self->start;
     my $sort    = $self->sort;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        my $hits = $bag->search(query => $val, start => $start, limit => $limit, sort => $sort);
-        +{start => $start, limit => $limit, total => $hits->total, hits => $hits->to_array};
-    });
+    $builder->get($self->path)->update(
+        sub {
+            my $val  = $_[0];
+            my $hits = $bag->search(
+                query => $val,
+                start => $start,
+                limit => $limit,
+                sort  => $sort
+            );
+            +{
+                start => $start,
+                limit => $limit,
+                total => $hits->total,
+                hits  => $hits->to_array
+            };
+        }
+    );
 }
 
 =head1 NAME

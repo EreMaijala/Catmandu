@@ -18,24 +18,31 @@ has ignore_404 => (fix_opt => 1);
 has opts       => (fix_opt => 'collect');
 
 sub BUILD {
-    my ($self) = @_;
-    my $builder = $self->builder;
-    my $name = $self->name;
-    my $opts = $self->opts;
-    my $delete = $self->delete;
+    my ($self)     = @_;
+    my $builder    = $self->builder;
+    my $name       = $self->name;
+    my $opts       = $self->opts;
+    my $delete     = $self->delete;
     my $ignore_404 = $self->ignore_404;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        try {
-            $val = Catmandu->importer($name, variables => $val, %$opts)->first;
-        } catch_case ['Catmandu::HTTPError' => sub {
-            if ($_->code eq '404' && $ignore_404) { $val = undef } else { $_->throw }
-        }];
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            try {
+                $val = Catmandu->importer($name, variables => $val, %$opts)
+                    ->first;
+            }
+            catch_case [
+                'Catmandu::HTTPError' => sub {
+                    if ($_->code eq '404' && $ignore_404) {$val = undef}
+                    else                                  {$_->throw}
+                }
+            ];
 
-        return $val if defined $val;
-        return $builder->cancel_and_delete if $delete;
-        $builder->cancel;
-    });
+            return $val if defined $val;
+            return $builder->cancel_and_delete if $delete;
+            $builder->cancel;
+        }
+    );
 }
 
 1;
