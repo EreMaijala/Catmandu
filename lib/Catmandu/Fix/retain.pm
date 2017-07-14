@@ -12,6 +12,15 @@ with 'Catmandu::Fix::Base';
 
 has paths => (fix_arg => 'collect', default => sub {[]});
 
+sub BUILD {
+    my ($self) = @_;
+    my $builder = $self->builder;
+    my $paths   = $self->paths;
+    for my $path (@$paths) {
+        $builder->get($path)->shadow;
+    }
+}
+
 sub emit {
     my ($self, $fixer) = @_;
     my $paths   = $self->paths;

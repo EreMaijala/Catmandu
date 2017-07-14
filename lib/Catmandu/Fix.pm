@@ -51,8 +51,12 @@ has _current_fix_var => (
     is       => 'ro',
     lazy     => 1,
     init_arg => undef,
-    builder  => '_build_current_fix_var'
+    builder  => 'generate_var'
 );
+has _current_path =>
+    (is => 'ro', lazy => 1, init_arg => undef, default => sub {[]});
+has _current_path_var =>
+    (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_current_path_var');
 has preprocess => (is => 'ro');
 has _hogan =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_hogan');
@@ -155,9 +159,9 @@ sub _build_fixes_var {
     $self->capture($self->fixes);
 }
 
-sub _build_current_fix_var {
+sub _build_current_path_var {
     my ($self) = @_;
-    $self->generate_var;
+    $self->capture($self->_current_path);
 }
 
 sub _build_hogan {
@@ -344,9 +348,11 @@ sub emit_foreach {
     my ($self, $var, $cb) = @_;
     my $perl = "";
     my $v    = $self->generate_var;
-    $perl .= "foreach (\@{${var}}) {";
-    $perl .= $self->emit_declare_vars($v, '$_');
-    $perl .= $cb->($v);
+    my $i    = $self->generate_var;
+    # loop backwards so that deletions are safe
+    $perl .= "for (my ${i} = \@{${var}} - 1; ${i} >= 0; ${i}--) {";
+    $perl .= $self->emit_declare_vars($v, "${var}->[${i}]");
+    $perl .= $cb->($v, $i);
     $perl .= "}";
     $perl;
 }
@@ -365,12 +371,13 @@ sub emit_foreach_key {
 sub emit_walk_path {
     my ($self, $var, $keys, $cb) = @_;
 
-    $keys = [@$keys];    # protect keys
+    my $path = $self->_current_path;
+    splice @$path, 0, @$path;
 
-    if (@$keys) {        # protect $var
+    if (@$keys) {
         my $v = $self->generate_var;
         $self->emit_declare_vars($v, $var)
-            . $self->_emit_walk_path($v, $keys, $cb);
+            . $self->_emit_walk_path($v, [@$keys], $cb);
     }
     else {
         $cb->($var);
@@ -378,19 +385,22 @@ sub emit_walk_path {
 }
 
 sub _emit_walk_path {
-    my ($self, $var, $keys, $cb) = @_;
+    my ($self, $var, $keys, $cb, $index_var) = @_;
 
     @$keys || return $cb->($var);
 
-    my $key     = shift @$keys;
-    my $str_key = $self->emit_string($key);
-    my $perl    = "";
+    my $path_var = $self->_current_path_var;
+    my $key      = shift @$keys;
+    my $str_key  = $self->emit_string($key);
+    my $perl     = "";
 
     if ($key =~ /^\d+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
+        $perl .= "push(\@{${path_var}}, ${str_key})";
         $perl .= "${var} = ${var}->{${str_key}};";
         $perl .= $self->_emit_walk_path($var, [@$keys], $cb);
         $perl .= "} elsif (is_array_ref(${var}) && \@{${var}} > ${key}) {";
+        $perl .= "push(\@{${path_var}}, ${key});";
         $perl .= "${var} = ${var}->[${key}];";
         $perl .= $self->_emit_walk_path($var, [@$keys], $cb);
         $perl .= "}";
@@ -398,10 +408,14 @@ sub _emit_walk_path {
     elsif ($key eq '*') {
         my $v = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
+        my $path_index_var = $self->generate_var;
+        $perl .= $self->emit_declare_vars($path_index_var, "scalar(\@{${path_var}})");
         $perl .= $self->emit_foreach(
             $var,
             sub {
-                return $self->_emit_walk_path(shift, $keys, $cb);
+                my ($var, $index_var) = @_;
+                "${path_var}->[${path_index_var}] = ${index_var};" .
+                $self->_emit_walk_path($var, $keys, $cb);
             }
         );
         $perl .= "}";
@@ -409,14 +423,17 @@ sub _emit_walk_path {
     else {
         if ($key eq '$first') {
             $perl .= "if (is_array_ref(${var}) && \@{${var}}) {";
+            $perl .= "push(\@{${path_var}}, 0);";
             $perl .= "${var} = ${var}->[0];";
         }
         elsif ($key eq '$last') {
             $perl .= "if (is_array_ref(${var}) && \@{${var}}) {";
+            $perl .= "push(\@{${path_var}}, \@{${var}} - 1);";
             $perl .= "${var} = ${var}->[\@{${var}} - 1];";
         }
         else {
             $perl .= "if (is_hash_ref(${var})) {";
+            $perl .= "push(\@{${path_var}}, ${str_key})";
             $perl .= "${var} = ${var}->{${str_key}};";
         }
         $perl .= $self->_emit_walk_path($var, $keys, $cb);
@@ -428,6 +445,10 @@ sub _emit_walk_path {
 
 sub emit_create_path {
     my ($self, $var, $keys, $cb) = @_;
+
+    my $path = $self->_current_path;
+    splice @$path, 0, @$path;
+
     $self->_emit_create_path($var, [@$keys], $cb);
 }
 
@@ -436,6 +457,7 @@ sub _emit_create_path {
 
     @$keys || return $cb->($var, $index_var);
 
+    my $path_var = $self->_current_path_var;
     my $key     = shift @$keys;
     my $str_key = $self->emit_string($key);
     my $perl    = "";
@@ -513,37 +535,48 @@ sub emit_get_key {
 
     return $cb->($var) unless defined $key;
 
-    my $str_key = $self->emit_string($key);
-    my $perl    = "";
+    my $path_var = $self->_current_path_var;
+    my $str_key  = $self->emit_string($key);
+    my $perl     = "";
 
     if ($key =~ /^\d+$/) {
         $perl .= "if (is_hash_ref(${var}) && exists(${var}->{${str_key}})) {";
+        $perl .= "push(\@{${path_var}}, ${str_key})";
         $perl .= $cb->("${var}->{${str_key}}");
         $perl .= "} elsif (is_array_ref(${var}) && \@{${var}} > ${key}) {";
+        $perl .= "push(\@{${path_var}}, ${key})";
         $perl .= $cb->("${var}->[${key}]");
         $perl .= "}";
     }
     elsif ($key eq '$first') {
         $perl .= "if (is_array_ref(${var}) && \@{${var}}) {";
+        $perl .= "push(\@{${path_var}}, 0)";
         $perl .= $cb->("${var}->[0]");
         $perl .= "}";
     }
     elsif ($key eq '$last') {
         $perl .= "if (is_array_ref(${var}) && \@{${var}}) {";
+        $perl .= "push(\@{${path_var}}, \@{${var}} - 1);";
         $perl .= $cb->("${var}->[\@{${var}} - 1]");
         $perl .= "}";
     }
     elsif ($key eq '*') {
-        my $i = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
-
-        # loop backwards so that deletions are safe
-        $perl .= "for (my ${i} = \@{${var}} - 1; ${i} >= 0; ${i}--) {";
-        $perl .= $cb->("${var}->[${i}]", $i);
-        $perl .= "}}";
+        my $path_index_var = $self->generate_var;
+        $perl .= $self->emit_declare_vars($path_index_var, "scalar(\@{${path_var}})");
+        $perl .= $self->emit_foreach(
+            $var,
+            sub {
+                my ($var, $index_var) = @_;
+                "${path_var}->[${path_index_var}] = ${index_var};" .
+                $cb->("${var}", $index_var);
+            }
+        );
+        $perl .= "}";
     }
     else {
         $perl .= "if (is_hash_ref(${var}) && exists(${var}->{${str_key}})) {";
+        $perl .= "push(\@{${path_var}}, ${str_key})";
         $perl .= $cb->("${var}->{${str_key}}");
         $perl .= "}";
     }
@@ -554,48 +587,63 @@ sub emit_get_key {
 sub emit_set_key {
     my ($self, $var, $key, $val) = @_;
 
-    return "${var} = $val;" unless defined $key;
+    return "${var} = ${val};" unless defined $key;
 
-    my $perl    = "";
-    my $str_key = $self->emit_string($key);
+    my $path_var = $self->_current_path_var;
+    my $str_key  = $self->emit_string($key);
+    my $perl     = "";
 
     if ($key =~ /^\d+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
-        $perl .= "${var}->{${str_key}} = $val;";
+        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "${var}->{${str_key}} = ${val};";
         $perl .= "} elsif (is_array_ref(${var})) {";
-        $perl .= "${var}->[${key}] = $val;";
+        $perl .= "push(\@{${path_var}}, ${key})";
+        $perl .= "${var}->[${key}] = ${val};";
         $perl .= "}";
     }
     elsif ($key eq '$first') {
         $perl .= "if (is_array_ref(${var})) {";
-        $perl .= "${var}->[0] = $val;";
+        $perl .= "push(\@{${path_var}}, 0);";
+        $perl .= "${var}->[0] = ${val};";
         $perl .= "}";
     }
     elsif ($key eq '$last') {
         $perl .= "if (is_array_ref(${var})) {";
-        $perl .= "${var}->[\@{${var}} - 1] = $val;";
+        $perl .= "push(\@{${path_var}}, \@{${var}} - 1);";
+        $perl .= "${var}->[\@{${var}} - 1] = ${val};";
         $perl .= "}";
     }
     elsif ($key eq '$prepend') {
         $perl .= "if (is_array_ref(${var})) {";
-        $perl .= "unshift(\@{${var}}, $val);";
+        $perl .= "push(\@{${path_var}}, 0);";
+        $perl .= "unshift(\@{${var}}, ${val});";
         $perl .= "}";
     }
     elsif ($key eq '$append') {
         $perl .= "if (is_array_ref(${var})) {";
-        $perl .= "push(\@{${var}}, $val);";
+        $perl .= "push(\@{${path_var}}, \@{${var}});";
+        $perl .= "push(\@{${var}}, ${val});";
         $perl .= "}";
     }
     elsif ($key eq '*') {
-        my $i = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
-        $perl .= "for (my ${i} = 0; ${i} < \@{${var}}; ${i}++) {";
-        $perl .= "${var}->[${i}] = $val;";
-        $perl .= "}}";
+        my $path_index_var = $self->generate_var;
+        $perl .= $self->emit_declare_vars($path_index_var, "scalar(\@{${path_var}})");
+        $perl .= $self->emit_foreach(
+            $var,
+            sub {
+                my ($var, $index_var) = @_;
+                "${path_var}->[${path_index_var}] = ${index_var};" .
+                "${var}->[${index_var}] = ${val};";
+            }
+        );
+        $perl .= "}";
     }
     else {
         $perl .= "if (is_hash_ref(${var})) {";
-        $perl .= "${var}->{${str_key}} = $val;";
+        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "${var}->{${str_key}} = ${val};";
         $perl .= "}";
     }
 
