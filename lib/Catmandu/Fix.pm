@@ -351,8 +351,7 @@ sub emit_foreach {
     my $i    = $self->generate_var;
     # loop backwards so that deletions are safe
     $perl .= "for (my ${i} = \@{${var}} - 1; ${i} >= 0; ${i}--) {";
-    $perl .= $self->emit_declare_vars($v, "${var}->[${i}]");
-    $perl .= $cb->($v, $i);
+    $perl .= $cb->("${var}->[${i}]", $i);
     $perl .= "}";
     $perl;
 }
@@ -396,7 +395,7 @@ sub _emit_walk_path {
 
     if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
-        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "push(\@{${path_var}}, ${str_key});";
         $perl .= "${var} = ${var}->{${str_key}};";
         $perl .= $self->_emit_walk_path($var, [@$keys], $cb);
         $perl .= "} elsif (is_array_ref(${var}) && \@{${var}} > ${key}) {";
@@ -433,7 +432,7 @@ sub _emit_walk_path {
         }
         else {
             $perl .= "if (is_hash_ref(${var})) {";
-            $perl .= "push(\@{${path_var}}, ${str_key})";
+            $perl .= "push(\@{${path_var}}, ${str_key});";
             $perl .= "${var} = ${var}->{${str_key}};";
         }
         $perl .= $self->_emit_walk_path($var, $keys, $cb);
@@ -513,8 +512,9 @@ sub _emit_create_path {
                 $perl .= $self->_emit_create_path("${v}->[0]", $keys, $cb);
             }
             elsif ($key eq '$append') {
+                my $index_var = $self->generate_var;
                 $perl
-                    .= $self->_emit_create_path("${v}->[\@${v}]", $keys, $cb);
+                    .= $self->emit_declare_vars($index_var, "scalar(\@${v})") . $self->_emit_create_path("${v}->[${index_var}]", $keys, $cb);
             }
             $perl .= "}";
         }
@@ -541,16 +541,16 @@ sub emit_get_key {
 
     if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var}) && exists(${var}->{${str_key}})) {";
-        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "push(\@{${path_var}}, ${str_key});";
         $perl .= $cb->("${var}->{${str_key}}");
         $perl .= "} elsif (is_array_ref(${var}) && \@{${var}} > ${key}) {";
-        $perl .= "push(\@{${path_var}}, ${key})";
+        $perl .= "push(\@{${path_var}}, ${key});";
         $perl .= $cb->("${var}->[${key}]");
         $perl .= "}";
     }
     elsif ($key eq '$first') {
         $perl .= "if (is_array_ref(${var}) && \@{${var}}) {";
-        $perl .= "push(\@{${path_var}}, 0)";
+        $perl .= "push(\@{${path_var}}, 0);";
         $perl .= $cb->("${var}->[0]");
         $perl .= "}";
     }
@@ -576,12 +576,22 @@ sub emit_get_key {
     }
     else {
         $perl .= "if (is_hash_ref(${var}) && exists(${var}->{${str_key}})) {";
-        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "push(\@{${path_var}}, ${str_key});";
         $perl .= $cb->("${var}->{${str_key}}");
         $perl .= "}";
     }
 
     $perl;
+}
+
+sub emit_set {
+    my ($self, $var, $key, $index_var, $val) = @_;
+    if ($index_var) {
+        "${var}->[${index_var}] = ${val};";
+    }
+    else {
+        $self->emit_set_key($var, $key, $val);
+    }
 }
 
 sub emit_set_key {
@@ -595,10 +605,10 @@ sub emit_set_key {
 
     if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
-        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "push(\@{${path_var}}, ${str_key});";
         $perl .= "${var}->{${str_key}} = ${val};";
         $perl .= "} elsif (is_array_ref(${var})) {";
-        $perl .= "push(\@{${path_var}}, ${key})";
+        $perl .= "push(\@{${path_var}}, ${key});";
         $perl .= "${var}->[${key}] = ${val};";
         $perl .= "}";
     }
@@ -642,7 +652,7 @@ sub emit_set_key {
     }
     else {
         $perl .= "if (is_hash_ref(${var})) {";
-        $perl .= "push(\@{${path_var}}, ${str_key})";
+        $perl .= "push(\@{${path_var}}, ${str_key});";
         $perl .= "${var}->{${str_key}} = ${val};";
         $perl .= "}";
     }
@@ -653,7 +663,7 @@ sub emit_set_key {
 sub emit_delete {
     my ($self, $var, $key, $index_var, $cb) = @_;
     if ($index_var) {
-        "splice(\@{${var}}, ${index_var}, 1)";
+        "splice(\@{${var}}, ${index_var}, 1);";
     }
     else {
         $self->emit_delete_key($var, $key, $cb);

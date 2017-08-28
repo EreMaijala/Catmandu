@@ -9,11 +9,6 @@ use namespace::clean;
 
 with 'Catmandu::Fix::Base';
 
-sub emit {
-    my ($self, $fixer, $label) = @_;
-    "last ${label};";
-}
-
 1;
 
 __END__
