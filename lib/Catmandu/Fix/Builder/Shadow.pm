@@ -14,9 +14,8 @@ sub emit {
     my ($self, %ctx) = @_;
     my ($fixer, $var, $stash_var) = ($ctx{fixer}, $ctx{var}, $ctx{stash_var});
     my $name = $fixer->emit_string('_shadow');
-    my $path = [];
 
-    $fixer->emit_create_path("${stash_var}->{${name}}", $path, sub {
+    $fixer->emit_create_path("${stash_var}->{${name}}", $fixer->current_path, sub {
         my ($shadow_var) = @_;
         "${shadow_var} = ${var};";
     });
