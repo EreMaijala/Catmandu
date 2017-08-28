@@ -20,7 +20,7 @@ sub BUILD {
     $builder->get($self->path)->update(
         sub {
             my $val = $_[0];
-            if (is_string($val) and my ($num) = $val =~ /([+-]?\d+)/) {
+            if (is_string($val) and my ($num) = $val =~ /([+-]?[0-9]+)/) {
                 $num + 0;
             }
             elsif (is_array_ref($val)) {

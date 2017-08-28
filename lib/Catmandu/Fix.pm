@@ -394,7 +394,7 @@ sub _emit_walk_path {
     my $str_key  = $self->emit_string($key);
     my $perl     = "";
 
-    if ($key =~ /^\d+$/) {
+    if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
         $perl .= "push(\@{${path_var}}, ${str_key})";
         $perl .= "${var} = ${var}->{${str_key}};";
@@ -462,7 +462,7 @@ sub _emit_create_path {
     my $str_key = $self->emit_string($key);
     my $perl    = "";
 
-    if ($key =~ /^\d+$/) {
+    if ($key =~ /^[0-9]+$/) {
         my $v1 = $self->generate_var;
         my $v2 = $self->generate_var;
         $perl .= "if (is_hash_ref(${var})) {";
@@ -539,7 +539,7 @@ sub emit_get_key {
     my $str_key  = $self->emit_string($key);
     my $perl     = "";
 
-    if ($key =~ /^\d+$/) {
+    if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var}) && exists(${var}->{${str_key}})) {";
         $perl .= "push(\@{${path_var}}, ${str_key})";
         $perl .= $cb->("${var}->{${str_key}}");
@@ -593,7 +593,7 @@ sub emit_set_key {
     my $str_key  = $self->emit_string($key);
     my $perl     = "";
 
-    if ($key =~ /^\d+$/) {
+    if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
         $perl .= "push(\@{${path_var}}, ${str_key})";
         $perl .= "${var}->{${str_key}} = ${val};";
@@ -671,7 +671,7 @@ sub emit_delete_key {
         $perl = $self->emit_declare_vars($vals, '[]');
     }
 
-    if ($key =~ /^\d+$/) {
+    if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var}) && exists(${var}->{${str_key}})) {";
         $perl .= "push(\@{${vals}}, " if $cb;
         $perl .= "delete(${var}->{${str_key}})";
@@ -710,7 +710,7 @@ sub emit_retain_key {
 
     my $perl = "";
 
-    if ($key =~ /^\d+$/) {
+    if ($key =~ /^[0-9]+$/) {
         $perl .= "if (is_hash_ref(${var})) {";
         $perl .= $self->emit_foreach_key(
             $var,
