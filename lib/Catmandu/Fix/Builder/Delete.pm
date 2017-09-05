@@ -15,7 +15,7 @@ sub emit {
         $ctx{fixer}->emit_delete($ctx{up_var}, $ctx{key}, $ctx{index_var});
     }
     else {
-        'Catmandu::NotImplemented->throw;';
+        $ctx{fixer}->emit_clear_hash_ref($ctx{var});
     }
 }
 

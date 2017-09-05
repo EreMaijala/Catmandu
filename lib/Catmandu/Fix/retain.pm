@@ -17,56 +17,10 @@ sub BUILD {
     my $builder = $self->builder;
     my $paths   = $self->paths;
     for my $path (@$paths) {
-        $builder->get($path)->shadow;
+        $builder->shadow($path);
     }
-}
-
-sub emit {
-    my ($self, $fixer) = @_;
-    my $paths   = $self->paths;
-    my $var     = $fixer->var;
-    my $tmp_var = $fixer->generate_var;
-    my $perl    = $fixer->emit_declare_vars($tmp_var, '{}');
-    for (@$paths) {
-        my $path = $fixer->split_path($_);
-        my $key  = pop @$path;
-        $perl .= $fixer->emit_walk_path(
-            $var, $path,
-            sub {
-                my ($var) = @_;
-                $fixer->emit_get_key(
-                    $var, $key,
-                    sub {
-                        my ($var) = @_;
-                        $fixer->emit_create_path(
-                            $tmp_var,
-                            [@$path, $key],
-                            sub {
-                                my ($tmp_var) = @_;
-                                "${tmp_var} = ${var};";
-                            }
-                        );
-                    }
-                );
-            }
-        );
-    }
-
-    # clear data
-    $perl .= $fixer->emit_clear_hash_ref($var);
-
-    # copy tmp data
-    $perl .= $fixer->emit_foreach_key(
-        $tmp_var,
-        sub {
-            my ($key) = @_;
-            "${var}\->{${key}} = ${tmp_var}\->{${key}};";
-        }
-    );
-
-    # free tmp data
-    $perl .= "undef ${tmp_var};";
-    $perl;
+    $builder->delete;
+    $builder->unshadow;
 }
 
 1;

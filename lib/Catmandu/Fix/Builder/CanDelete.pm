@@ -11,7 +11,7 @@ use namespace::clean;
 requires 'steps';
 
 sub delete {
-    my ($self, $path) = @_;
+    my ($self) = @_;
     my $step = Catmandu::Fix::Builder::Delete->new;
     push @{$self->steps}, $step;
     $self;

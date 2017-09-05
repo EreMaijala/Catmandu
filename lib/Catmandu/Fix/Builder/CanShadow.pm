@@ -12,8 +12,8 @@ use namespace::clean;
 requires 'steps';
 
 sub shadow {
-    my ($self) = @_;
-    my $step = Catmandu::Fix::Builder::Shadow->new;
+    my ($self, $path) = @_;
+    my $step = Catmandu::Fix::Builder::Shadow->new(path => $path);
     push @{$self->steps}, $step;
     $self;
 }
