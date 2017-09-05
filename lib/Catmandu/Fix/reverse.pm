@@ -16,16 +16,20 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
     my $builder = $self->builder;
-    $builder->get($self->path)->update(sub {
-        my $val = $_[0];
-        if (is_array_ref($val)) {
-            [reverse(@$val)];
-        } elsif (is_string($val)) {
-            scalar(reverse($val));
-        } else {
-            $builder->cancel;
+    $builder->get($self->path)->update(
+        sub {
+            my $val = $_[0];
+            if (is_array_ref($val)) {
+                [reverse(@$val)];
+            }
+            elsif (is_string($val)) {
+                scalar(reverse($val));
+            }
+            else {
+                $builder->cancel;
+            }
         }
-    });
+    );
 }
 
 1;

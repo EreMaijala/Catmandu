@@ -12,8 +12,7 @@ with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanSet',
     'Catmandu::Fix::Builder::CanUnstash', 'Catmandu::Fix::Builder::CanApply',
     'Catmandu::Fix::Builder::CanUpdate',  'Catmandu::Fix::Builder::CanDelete',
     'Catmandu::Fix::Builder::CanShadow',
-    'Catmandu::Fix::Builder::CanUnshadow',
-    'Catmandu::Fix::Builder::CanIf';
+    'Catmandu::Fix::Builder::CanUnshadow', 'Catmandu::Fix::Builder::CanIf';
 
 has path => (is => 'ro', required => 1);
 

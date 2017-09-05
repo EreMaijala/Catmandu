@@ -47,16 +47,16 @@ has _reject_label =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => 'generate_label');
 has _fixes_var =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_fixes_var');
-has _current_fix_var => (
+has _current_fix_var =>
+    (is => 'ro', lazy => 1, init_arg => undef, builder => 'generate_var');
+has _current_path =>
+    (is => 'ro', lazy => 1, init_arg => undef, default => sub {[]});
+has _current_path_var => (
     is       => 'ro',
     lazy     => 1,
     init_arg => undef,
-    builder  => 'generate_var'
+    builder  => '_build_current_path_var'
 );
-has _current_path =>
-    (is => 'ro', lazy => 1, init_arg => undef, default => sub {[]});
-has _current_path_var =>
-    (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_current_path_var');
 has preprocess => (is => 'ro');
 has _hogan =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_hogan');
@@ -349,6 +349,7 @@ sub emit_foreach {
     my $perl = "";
     my $v    = $self->generate_var;
     my $i    = $self->generate_var;
+
     # loop backwards so that deletions are safe
     $perl .= "for (my ${i} = \@{${var}} - 1; ${i} >= 0; ${i}--) {";
     $perl .= $cb->("${var}->[${i}]", $i);
@@ -408,13 +409,14 @@ sub _emit_walk_path {
         my $v = $self->generate_var;
         $perl .= "if (is_array_ref(${var})) {";
         my $path_index_var = $self->generate_var;
-        $perl .= $self->emit_declare_vars($path_index_var, "scalar(\@{${path_var}})");
+        $perl .= $self->emit_declare_vars($path_index_var,
+            "scalar(\@{${path_var}})");
         $perl .= $self->emit_foreach(
             $var,
             sub {
                 my ($var, $index_var) = @_;
-                "${path_var}->[${path_index_var}] = ${index_var};" .
-                $self->_emit_walk_path($var, $keys, $cb);
+                "${path_var}->[${path_index_var}] = ${index_var};"
+                    . $self->_emit_walk_path($var, $keys, $cb);
             }
         );
         $perl .= "}";
@@ -457,9 +459,9 @@ sub _emit_create_path {
     @$keys || return $cb->($var, $index_var);
 
     my $path_var = $self->_current_path_var;
-    my $key     = shift @$keys;
-    my $str_key = $self->emit_string($key);
-    my $perl    = "";
+    my $key      = shift @$keys;
+    my $str_key  = $self->emit_string($key);
+    my $perl     = "";
 
     if ($key =~ /^[0-9]+$/) {
         my $v1 = $self->generate_var;
@@ -514,7 +516,9 @@ sub _emit_create_path {
             elsif ($key eq '$append') {
                 my $index_var = $self->generate_var;
                 $perl
-                    .= $self->emit_declare_vars($index_var, "scalar(\@${v})") . $self->_emit_create_path("${v}->[${index_var}]", $keys, $cb);
+                    .= $self->emit_declare_vars($index_var, "scalar(\@${v})")
+                    . $self->_emit_create_path("${v}->[${index_var}]", $keys,
+                    $cb);
             }
             $perl .= "}";
         }
@@ -563,13 +567,14 @@ sub emit_get_key {
     elsif ($key eq '*') {
         $perl .= "if (is_array_ref(${var})) {";
         my $path_index_var = $self->generate_var;
-        $perl .= $self->emit_declare_vars($path_index_var, "scalar(\@{${path_var}})");
+        $perl .= $self->emit_declare_vars($path_index_var,
+            "scalar(\@{${path_var}})");
         $perl .= $self->emit_foreach(
             $var,
             sub {
                 my ($var, $index_var) = @_;
-                "${path_var}->[${path_index_var}] = ${index_var};" .
-                $cb->("${var}", $index_var);
+                "${path_var}->[${path_index_var}] = ${index_var};"
+                    . $cb->("${var}", $index_var);
             }
         );
         $perl .= "}";
@@ -639,13 +644,14 @@ sub emit_set_key {
     elsif ($key eq '*') {
         $perl .= "if (is_array_ref(${var})) {";
         my $path_index_var = $self->generate_var;
-        $perl .= $self->emit_declare_vars($path_index_var, "scalar(\@{${path_var}})");
+        $perl .= $self->emit_declare_vars($path_index_var,
+            "scalar(\@{${path_var}})");
         $perl .= $self->emit_foreach(
             $var,
             sub {
                 my ($var, $index_var) = @_;
-                "${path_var}->[${path_index_var}] = ${index_var};" .
-                "${var}->[${index_var}] = ${val};";
+                "${path_var}->[${path_index_var}] = ${index_var};"
+                    . "${var}->[${index_var}] = ${val};";
             }
         );
         $perl .= "}";

@@ -47,7 +47,9 @@ sub emit {
     $perl
         . "} elsif (!"
         . $self->emit_is_cancel($tmp_var) . ") {"
-        . $fixer->emit_set($ctx{up_var} // $ctx{var}, $ctx{key}, $ctx{index_var}, $tmp_var) . "}";
+        . $fixer->emit_set($ctx{up_var} // $ctx{var},
+        $ctx{key}, $ctx{index_var}, $tmp_var)
+        . "}";
 }
 
 1;
