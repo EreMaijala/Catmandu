@@ -1,6 +1,6 @@
 package Catmandu::FileStore;
 
-our $VERSION = '1.0602';
+our $VERSION = '1.0603';
 
 use Catmandu::Sane;
 use Moo::Role;
@@ -100,6 +100,9 @@ Catmandu::FileStore - Namespace for packages that can make files persistent
 
     # Download the file 'myfile.txt' from the container '1234'
     $ catmandu stream File::Simple --root t/data --bag 1234 --id myfile.txt to /tmp/output.txt
+
+    # Delete the file 'myfile.txt' from the container '1234'
+    $ catmandu delete File::Simple --root t/data --bag 1234 --id myfile.txt
 
     # From Perl
     use Catmandu;

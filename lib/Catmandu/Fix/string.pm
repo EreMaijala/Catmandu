@@ -2,7 +2,7 @@ package Catmandu::Fix::string;
 
 use Catmandu::Sane;
 
-our $VERSION = '1.0602';
+our $VERSION = '1.0603';
 
 use Catmandu::Util qw(is_string is_value is_array_ref is_hash_ref);
 use List::Util qw(all);
