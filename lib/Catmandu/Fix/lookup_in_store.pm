@@ -36,7 +36,7 @@ sub _build_bag {
 sub BUILD {
     my ($self) = @_;
 
-    my $bag    = $self->bag;
+    my $bag     = $self->bag;
     my $builder = $self->builder;
     my $cb;
     if ($self->delete) {
