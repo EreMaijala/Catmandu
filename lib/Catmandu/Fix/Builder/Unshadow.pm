@@ -9,9 +9,6 @@ use namespace::clean;
 
 with 'Catmandu::Fix::Builder::Base';
 
-has names => (is => 'ro', default => sub {['_']});
-has cb => (is => 'ro');
-
 sub emit {
     my ($self, %ctx) = @_;
     my ($fixer, $var, $stash_var) = ($ctx{fixer}, $ctx{var}, $ctx{stash_var});
