@@ -13,11 +13,10 @@ has path => (is => 'ro', required => 1);
 
 sub emit {
     my ($self, %ctx) = @_;
-    my ($fixer, $var, $stash_var) = ($ctx{fixer}, $ctx{var}, $ctx{stash_var});
+    my ($fixer, $var) = ($ctx{fixer}, $ctx{var});
     my $path       = $fixer->split_path($self->path);
     my $key        = pop @$path;
-    my $name       = $fixer->emit_string('_shadow');
-    my $shadow_var = "${stash_var}->{${name}}";
+    my $shadow_var = $fixer->_shadow_var;
 
     $fixer->emit_walk_path(
         $var, $path,

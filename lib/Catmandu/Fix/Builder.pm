@@ -16,14 +16,11 @@ with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanGet',
 
 sub emit {
     my ($self, $fixer, $label, $var) = @_;
-    my $stash_var = $fixer->generate_var;
-    $fixer->emit_declare_vars($stash_var, '{}')
-        . $self->emit_steps(
+    $self->emit_steps(
         fixer     => $fixer,
         label     => $label,
         var       => $var // $fixer->var,
-        stash_var => $stash_var,
-        );
+    );
 }
 
 1;

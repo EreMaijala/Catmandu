@@ -77,7 +77,7 @@ sub emit {
     );
 
     if ($is_unstash) {
-        my $stash_var = $ctx{stash_var};
+        my $stash_var = $fixer->_stash_var;
         my $stash_key = $fixer->emit_string($self->steps->[0]->names->[0]);
         $perl
             = "while (\@{${stash_var}->{${stash_key}} ||= []}) {"

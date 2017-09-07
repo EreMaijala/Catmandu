@@ -49,6 +49,10 @@ has _fixes_var =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_fixes_var');
 has _current_fix_var =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => 'generate_var');
+has _shadow_var =>
+    (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_stash_var');
+has _stash_var =>
+    (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_shadow_var');
 has preprocess => (is => 'ro');
 has _hogan =>
     (is => 'ro', lazy => 1, init_arg => undef, builder => '_build_hogan');
@@ -151,6 +155,16 @@ sub _build_fixes_var {
     $self->capture($self->fixes);
 }
 
+sub _build_stash_var {
+    my ($self) = @_;
+    $self->capture(+{});
+}
+
+sub _build_shadow_var {
+    my ($self) = @_;
+    $self->capture(+{});
+}
+
 sub _build_hogan {
     Text::Hogan::Compiler->new;
 }
@@ -249,11 +263,15 @@ sub emit_reject {
 sub emit_fix {
     my ($self, $fix) = @_;
     my $perl;
+    my $stash_var = $self->_stash_var;
+    my $shadow_var = $self->_shadow_var;
 
     if ($fix->can('emit')) {
         $perl = $self->emit_block(
             sub {
                 my ($label) = @_;
+                "undef %{${stash_var}};" .
+                "undef %{${shadow_var}};" .
                 $fix->emit($self, $label);
             }
         );

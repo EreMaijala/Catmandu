@@ -15,7 +15,8 @@ has value => (is => 'ro', predicate => 1);
 # TODO support callback, cancel
 sub emit {
     my ($self, %ctx) = @_;
-    my ($fixer, $var, $stash_var) = ($ctx{fixer}, $ctx{var}, $ctx{stash_var});
+    my ($fixer, $var) = ($ctx{fixer}, $ctx{var});
+    my $stash_var = $fixer->_stash_var;
     my $name = $fixer->emit_string($self->name);
 
     # TODO allow other values than strings (cfr update)
