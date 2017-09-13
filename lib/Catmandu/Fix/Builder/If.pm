@@ -12,15 +12,27 @@ with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanSet',
     'Catmandu::Fix::Builder::CanUpdate',  'Catmandu::Fix::Builder::CanDelete',
     'Catmandu::Fix::Builder::CanIf';
 
-has condition => (is => 'ro');
+has type => (is => 'ro');
+has cb => (is => 'ro');
 
 sub emit {
     my ($self, %ctx) = @_;
 
-    my $var    = $ctx{var};
-    my $if_var = $ctx{fixer}->capture($self->condition);
+    return '' unless @{$self->steps};
 
-    "if (${if_var}->(${var})) {" . $self->emit_steps(%ctx) . "}";
+    my $var = $ctx{var};
+    my $fixer = $ctx{fixer};
+    my $if;
+
+    if ($self->type) {
+        my $type = $self->type;
+        $if = "is_${type}(${var})";
+    } elsif ($self->cb) {
+        my $if_var = $fixer->capture($self->cb);
+        $if = "${if_var}->(${var})";
+    }
+
+    "if ($if) {" . $self->emit_steps(%ctx) . "}";
 }
 
 1;

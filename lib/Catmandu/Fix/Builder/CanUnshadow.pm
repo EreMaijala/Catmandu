@@ -14,7 +14,7 @@ requires 'steps';
 
 sub unshadow {
     my ($self) = @_;
-    state $step = Catmandu::Fix::Builder::Unshadow->new;
+    my $step = Catmandu::Fix::Builder::Unshadow->new;
     push @{$self->steps}, $step;
     $self;
 }

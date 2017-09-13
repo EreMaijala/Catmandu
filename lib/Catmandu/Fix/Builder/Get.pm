@@ -19,6 +19,8 @@ has path => (is => 'ro', required => 1);
 sub emit {
     my ($self, %ctx) = @_;
 
+    return '' unless @{$self->steps};
+
     my $fixer = $ctx{fixer};
     my $path  = $fixer->split_path($self->path);
     my $key   = pop @$path;

@@ -16,12 +16,9 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
-    $builder->get($self->path)->update(
+    $self->builder->get($self->path)->if_is_string->update(
         sub {
-            my $val = $_[0];
-            return $builder->cancel unless is_string($val);
-            ucfirst uc as_utf8($val);
+            uc as_utf8($_[0]);
         }
     );
 }

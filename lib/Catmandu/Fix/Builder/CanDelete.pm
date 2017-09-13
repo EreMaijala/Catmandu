@@ -12,7 +12,7 @@ requires 'steps';
 
 sub delete {
     my ($self) = @_;
-    state $step = Catmandu::Fix::Builder::Delete->new;
+    my $step = Catmandu::Fix::Builder::Delete->new;
     push @{$self->steps}, $step;
     $self;
 }
