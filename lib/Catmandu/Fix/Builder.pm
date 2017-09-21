@@ -5,6 +5,7 @@ use Catmandu::Sane;
 our $VERSION = '1.0507';
 
 use Moo;
+use Catmandu::Fix;
 use namespace::clean;
 
 with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanGet',
@@ -21,6 +22,11 @@ sub emit {
         label => $label,
         var   => $var // $fixer->var,
     );
+}
+
+sub fixer {
+    my ($self) = @_;
+    Catmandu::Fix->new(fixes => [$self])->fixer;
 }
 
 1;

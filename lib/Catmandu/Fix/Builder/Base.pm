@@ -8,6 +8,8 @@ use Scalar::Util qw(refaddr);
 use Moo::Role;
 use namespace::clean;
 
+with 'Catmandu::Logger';
+
 requires 'emit';
 
 sub cancel {
