@@ -15,12 +15,9 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
-    $builder->get($self->path)->update(
+    $self->builder->get($self->path)->if('is_array_ref')->update(
         sub {
-            my $val = $_[0];
-            return $builder->cancel unless is_array_ref($val);
-            [grep defined, @$val];
+            [grep defined, @{$_[0]}];
         }
     );
 }

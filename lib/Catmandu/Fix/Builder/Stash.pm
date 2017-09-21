@@ -17,7 +17,7 @@ sub emit {
     my ($self, %ctx) = @_;
     my ($fixer, $var) = ($ctx{fixer}, $ctx{var});
     my $stash_var = $fixer->_stash_var;
-    my $name = $fixer->emit_string($self->name);
+    my $name      = $fixer->emit_string($self->name);
 
     # TODO allow other values than strings (cfr update)
     if ($self->has_value) {

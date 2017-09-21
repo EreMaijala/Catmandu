@@ -17,14 +17,10 @@ has sep => (fix_opt => 1, default => sub {undef});
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
-    my $sep     = $self->sep;
-    $builder->update(
+    my $sep = $self->sep;
+    $self->builder->if('is_hash_ref')->update(
         sub {
             my $val = $_[0];
-
-            return $builder->cancel unless is_hash_ref($val);
-
             my $ref = Catmandu::Expander->collapse_hash($val);
 
             if (defined($sep)) {

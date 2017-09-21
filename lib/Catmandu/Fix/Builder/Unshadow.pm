@@ -15,17 +15,15 @@ sub emit {
     my $shadow_var = $fixer->_shadow_var;
 
     "if (%{${var}}) {"
-    . "Catmandu::NotImplemented->throw;"
-    . "} else {"
-    . $fixer->emit_foreach_key(
-    $shadow_var,
-    sub {
-        my $v = $_[0];
-        "${var}->{${v}} = ${shadow_var}->{${v}};";
-    }
-    )
-    . "undef %{${shadow_var}};"
-    . "}";
+        . "Catmandu::NotImplemented->throw;"
+        . "} else {"
+        . $fixer->emit_foreach_key(
+        $shadow_var,
+        sub {
+            my $v = $_[0];
+            "${var}->{${v}} = ${shadow_var}->{${v}};";
+        }
+        ) . "undef %{${shadow_var}};" . "}";
 }
 
 1;

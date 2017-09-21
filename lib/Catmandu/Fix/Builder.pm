@@ -17,9 +17,9 @@ with 'Catmandu::Fix::Builder::Steps', 'Catmandu::Fix::Builder::CanGet',
 sub emit {
     my ($self, $fixer, $label, $var) = @_;
     $self->emit_steps(
-        fixer     => $fixer,
-        label     => $label,
-        var       => $var // $fixer->var,
+        fixer => $fixer,
+        label => $label,
+        var   => $var // $fixer->var,
     );
 }
 

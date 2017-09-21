@@ -16,12 +16,9 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
-    $builder->get($self->path)->update(
+    $self->builder->get($self->path)->if('is_array_ref')->update(
         sub {
-            my $val = $_[0];
-            return $builder->cancel unless is_array_ref($val);
-            +{@$val};
+            +{@{$_[0]}};
         }
     );
 }

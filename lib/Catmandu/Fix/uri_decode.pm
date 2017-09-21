@@ -19,11 +19,9 @@ sub BUILD {
     my ($self) = @_;
 
     my $builder = $self->builder;
-    $builder->get($self->path)->update(
+    $self->builder->get($self->path)->if('is_string')->update(
         sub {
-            my $val = $_[0];
-            return $self->cancel unless is_string($val);
-            Encode::decode_utf8(URI::Escape::uri_unescape($val));
+            Encode::decode_utf8(URI::Escape::uri_unescape($_[0]));
         }
     );
 }

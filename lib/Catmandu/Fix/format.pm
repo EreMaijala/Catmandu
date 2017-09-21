@@ -17,23 +17,21 @@ with 'Catmandu::Fix::Base';
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
     my $spec    = $self->spec;
-    $builder->get($self->path)->update(
+    my $builder = $self->builder->get($self->path);
+    $builder->if('is_string')->update(
         sub {
-            my $val = $_[0];
-            if (is_array_ref($val)) {
-                sprintf($spec, @$val);
-            }
-            elsif (is_hash_ref($val)) {
-                sprintf($spec, %$val);
-            }
-            elsif (is_string($val)) {
-                sprintf($spec, $val);
-            }
-            else {
-                $self->cancel;
-            }
+            sprintf($spec, $_[0]);
+        }
+    );
+    $builder->if('is_array_ref')->update(
+        sub {
+            sprintf($spec, @{$_[0]});
+        }
+    );
+    $builder->if('is_hash_ref')->update(
+        sub {
+            sprintf($spec, %{$_[0]});
         }
     );
 }

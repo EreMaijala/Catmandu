@@ -16,19 +16,15 @@ has path => (fix_arg => 1);
 sub BUILD {
     my ($self) = @_;
 
-    my $builder = $self->builder;
-    $builder->get($self->path)->update(
+    my $builder = $self->builder->get($self->path);
+    $builder->if('is_array_ref')->update(
         sub {
-            my $val = $_[0];
-            if (is_array_ref($val)) {
-                scalar(@$val);
-            }
-            elsif (is_hash_ref($val)) {
-                scalar(keys %$val);
-            }
-            else {
-                $builder->cancel;
-            }
+            scalar(@{$_[0]});
+        }
+    );
+    $builder->if('is_hash_ref')->update(
+        sub {
+            scalar(keys %{$_[0]});
         }
     );
 }

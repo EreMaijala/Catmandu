@@ -19,11 +19,9 @@ sub BUILD {
 
     my $builder = $self->builder;
     my $regex   = $builder->regex($self->search);
-    $builder->get($self->path)->update(
+    $builder->get($self->path)->if('is_array_ref')->update(
         sub {
-            my $val = $_[0];
-            return $builder->cancel unless is_array_ref($val);
-            [grep m/$regex/, @$val];
+            [grep m/$regex/, @{$_[0]}];
         }
     );
 }
