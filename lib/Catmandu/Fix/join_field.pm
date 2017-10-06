@@ -2,7 +2,7 @@ package Catmandu::Fix::join_field;
 
 use Catmandu::Sane;
 
-our $VERSION = '1.0605';
+our $VERSION = '1.0606';
 
 use Catmandu::Util qw(is_value is_array_ref);
 use Moo;

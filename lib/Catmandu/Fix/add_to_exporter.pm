@@ -2,7 +2,7 @@ package Catmandu::Fix::add_to_exporter;
 
 use Catmandu::Sane;
 
-our $VERSION = '1.0605';
+our $VERSION = '1.0606';
 
 use Moo;
 use namespace::clean;
@@ -44,15 +44,15 @@ __END__
 Catmandu::Fix::add_to_exporter - Export a record as side effect
 
 =head1 SYNOPSIS
-  
+
    # Export the data field values to a CSV file
-   add_to_exporter(data,CSV,file => /tmp/test.txt, header => 1)
+   add_to_exporter(data,CSV, file:/tmp/test.txt, header: 1)
 
    # Export the complete record into a JSON file
-   add_to_exporter(data,JSON,file => /tmp/test.json, pretty => 1)
+   add_to_exporter(data,JSON, file:/tmp/test.json, pretty:1)
 
    # In general, export a PATH to an EXPORTER with one ore more OPT0s
-   add_to_exporter(PATH,EXPORTER, OPT1 => ... , OPT2 => ... , OPT3 => ... , ...)
+   add_to_exporter(PATH,EXPORTER, OPT1:... , OPT2:... , OPT3:... , ...)
 
    # Use the add_to_exporter to explode an ARRAY into many records
    # E.g.
@@ -69,7 +69,7 @@ Catmandu::Fix::add_to_exporter - Export a record as side effect
    end
    # You can get an output with 3 records using the command line function
    catmandu convert JSON to Null --fix exporter.fix < book.json
-   
+
 =head1 SEE ALSO
 
 L<Catmandu::Fix> , L<Catmandu::Exporter>

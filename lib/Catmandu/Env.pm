@@ -2,7 +2,7 @@ package Catmandu::Env;
 
 use Catmandu::Sane;
 
-our $VERSION = '1.0605';
+our $VERSION = '1.0606';
 
 use Catmandu::Util qw(require_package use_lib read_yaml read_json :is :check);
 use Catmandu::Fix;
@@ -58,10 +58,6 @@ has fixes_namespace => (is => 'ro', default => sub {'Catmandu::Fix'})
 
 has importer_namespace => (is => 'ro', default => sub {'Catmandu::Importer'});
 has exporter_namespace => (is => 'ro', default => sub {'Catmandu::Exporter'});
-
-sub default_config_extensions {
-    [qw(yaml yml json pl)];
-}
 
 sub BUILD {
     my ($self) = @_;

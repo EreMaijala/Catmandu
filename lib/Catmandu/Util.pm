@@ -2,7 +2,7 @@ package Catmandu::Util;
 
 use Catmandu::Sane;
 
-our $VERSION = '1.0605';
+our $VERSION = '1.0606';
 
 use Exporter qw(import);
 use Sub::Quote    ();
@@ -939,8 +939,7 @@ Returns a copy of C<$array> without the head.
 
 =item array_uniq($array)
 
-Returns a copy of C<$array> with all duplicates removed. Comparison is done
-with C<is_same()>.
+Returns a copy of C<$array> with all duplicates removed.
 
 =item array_split($array | $string)
 
